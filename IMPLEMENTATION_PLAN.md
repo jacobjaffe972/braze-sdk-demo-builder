@@ -397,10 +397,207 @@ Fonts: 'Helvetica Neue', sans-serif
 -->
 ```
 
-### 7. Gradio UI
+### 7. Streaming Support (NEW REQUIREMENT)
+
+**Difficulty**: EASY to MODERATE
+**Impact**: HIGH - Significantly improves UX by showing real-time progress
+**Implementation Phase**: Phase 3 (Orchestration) + Phase 4 (UI)
+
+#### Overview
+
+Add real-time streaming of agent thoughts, intermediate steps, and responses to the Gradio UI. This provides transparency into the multi-agent workflow and keeps users informed during long-running operations (website scraping, code generation, browser validation).
+
+#### What Users Will See
+
+```
+✓ Feature plan created with customer branding
+✓ Braze documentation research complete
+✓ Landing page code generated
+⚠ Validation issues detected, starting refinement
+✓ Code refined (iteration 1)
+✓ Browser validation complete
+✓ Landing page finalized and exported
+```
+
+#### Implementation Strategy
+
+**File**: [braze_code_gen/core/workflow.py](code/braze_code_gen/core/workflow.py)
+
+Add streaming method that wraps LangGraph's built-in `.stream()`:
+
+```python
+class BrazeCodeGeneratorWorkflow:
+    def stream_workflow(self, state: CodeGenerationState):
+        """Stream workflow execution with intermediate updates."""
+        for chunk in self.graph.stream(state):
+            # chunk is dict with node name as key
+            node_name = list(chunk.keys())[0]
+            node_output = chunk[node_name]
+
+            # Yield status update
+            yield {
+                "type": "node_complete",
+                "node": node_name,
+                "status": self._format_node_status(node_name, node_output)
+            }
+
+            # If there's a message, yield it
+            if "messages" in node_output and node_output["messages"]:
+                last_message = node_output["messages"][-1]
+                if hasattr(last_message, 'content'):
+                    yield {
+                        "type": "message",
+                        "content": last_message.content
+                    }
+
+    def _format_node_status(self, node_name: str, output: dict) -> str:
+        """Format node completion status for UI."""
+        status_messages = {
+            "lead": "✓ Feature plan created with customer branding",
+            "research": "✓ Braze documentation research complete",
+            "code_generation": "✓ Landing page code generated",
+            "validation": "✓ Browser validation complete" if output.get("validation_passed") else "⚠ Validation issues detected, starting refinement",
+            "refinement": f"✓ Code refined (iteration {output.get('refinement_iteration', 0)})",
+            "finalization": "✓ Landing page finalized and exported"
+        }
+        return status_messages.get(node_name, f"✓ {node_name} complete")
+```
+
+**File**: [braze_code_gen/agents/braze_code_generator.py](code/braze_code_gen/agents/braze_code_generator.py)
+
+Add streaming method to main orchestrator:
+
+```python
+class BrazeCodeGenerator:
+    def generate_streaming(self, user_message: str, braze_config: BrazeAPIConfig, website_url: Optional[str] = None):
+        """Generate landing page with streaming updates."""
+        # Create initial state
+        state = create_initial_state(user_message, braze_config, website_url)
+
+        # Stream workflow
+        for update in self.workflow.stream_workflow(state):
+            yield update
+```
+
 **File**: [braze_code_gen/ui/gradio_app.py](code/braze_code_gen/ui/gradio_app.py)
 
-**NEW: Three-Section Accordion Layout**
+Modify Gradio to support generator functions:
+
+```python
+def respond_streaming(message: str, history: List[Tuple[str, str]]):
+    """Process message with streaming updates."""
+    # Validate API config
+    if not api_config:
+        yield "⚠️ Please configure Braze API first"
+        return
+
+    # Extract website URL from message
+    url_match = re.search(r'https?://[^\s]+', message)
+    website_url = url_match.group(0) if url_match else None
+
+    # Initialize generator
+    generator = braze_generator.generate_streaming(message, api_config, website_url)
+
+    # Stream updates
+    status_text = ""
+    for update in generator:
+        if update["type"] == "node_complete":
+            # Show progress status
+            status_text += f"\n{update['status']}"
+            yield status_text
+
+        elif update["type"] == "message":
+            # Show agent response
+            yield status_text + f"\n\n{update['content']}"
+
+# Create chat interface with streaming
+demo = gr.ChatInterface(
+    fn=respond_streaming,
+    title="Braze SDK Landing Page Generator",
+    type="messages"  # Important for streaming support
+)
+```
+
+#### Token-Level Streaming (Optional Enhancement)
+
+For even smoother UX, stream individual LLM tokens as they're generated using LangGraph's `.astream_events()`:
+
+```python
+async def astream_with_tokens(self, state: CodeGenerationState):
+    """Stream workflow with token-level granularity."""
+    async for event in self.graph.astream_events(state, version="v2"):
+        # Stream LLM tokens
+        if event["event"] == "on_chat_model_stream":
+            chunk = event["data"]["chunk"]
+            if hasattr(chunk, 'content') and chunk.content:
+                yield {
+                    "type": "token",
+                    "content": chunk.content
+                }
+
+        # Stream node completions
+        elif event["event"] == "on_chain_end":
+            node_name = event.get("name", "")
+            if node_name in ["lead", "research", "code_generation", ...]:
+                yield {
+                    "type": "node_complete",
+                    "node": node_name
+                }
+```
+
+**Requirements for Token Streaming**:
+1. Make Gradio `respond` function `async`
+2. Use `async for` to iterate over tokens
+3. Update UI to handle async generators
+
+#### Benefits
+
+1. **User Experience**:
+   - No more "black box" waiting
+   - Clear progress indication during 30-60 second workflows
+   - Confidence that system is working (especially during slow operations like website scraping)
+
+2. **Debugging**:
+   - See exactly where workflow fails
+   - Identify slow agents (code generation can take 10-15 seconds)
+   - Monitor validation loop iterations
+
+3. **Transparency**:
+   - Users see which agent is active
+   - Understand decision points (validation pass/fail)
+   - Watch code refinement iterations (up to 3)
+
+#### Implementation Complexity
+
+- **Basic Streaming** (node-level): **EASY** - 50-100 lines of code
+  - Uses LangGraph's built-in `.stream()` method
+  - Simple generator function pattern
+  - No async complexity
+
+- **Token Streaming**: **MODERATE** - Additional 150 lines
+  - Requires async/await support
+  - More complex event filtering
+  - Gradio async handler setup
+
+#### Recommendation
+
+**Start with basic node-level streaming in Phase 3 & 4**. This provides 80% of the UX benefit with minimal complexity. Token-level streaming can be added later if users want even smoother text generation.
+
+#### Code Changes Required
+
+**No changes to Phase 1 & 2 agent code** - Streaming is purely an orchestration-layer concern. All 6 agents built in Phase 2 remain unchanged.
+
+**New code in Phase 3 & 4**:
+1. Add `stream_workflow()` method to [core/workflow.py](code/braze_code_gen/core/workflow.py)
+2. Add `generate_streaming()` method to [agents/braze_code_generator.py](code/braze_code_gen/agents/braze_code_generator.py)
+3. Modify `respond()` to generator function in [ui/gradio_app.py](code/braze_code_gen/ui/gradio_app.py)
+
+**Total additional code**: ~100 lines
+
+### 8. Gradio UI
+**File**: [braze_code_gen/ui/gradio_app.py](code/braze_code_gen/ui/gradio_app.py)
+
+**NEW: Three-Section Accordion Layout with Streaming Support**
 
 ```python
 def create_braze_ui():
@@ -642,26 +839,28 @@ webcolors>=1.13        # Color name to hex conversion
 11. Implement Finalization Agent
 
 ### Phase 3: Orchestration
-12. Implement `core/workflow.py` with router
-13. Implement `agents/braze_code_generator.py` main orchestrator
-14. Add Opik tracing
-15. Write all prompts in `prompts/BRAZE_PROMPTS.py`
+12. ✅ Write all prompts in `prompts/BRAZE_PROMPTS.py` (Already complete from Phase 2)
+13. Implement `core/workflow.py` with router **+ streaming support**
+14. Implement `agents/braze_code_generator.py` main orchestrator **+ streaming methods**
+15. Add Opik tracing
 
 ### Phase 4: UI
-16. Implement Gradio UI in `ui/gradio_app.py`
+16. Implement Gradio UI in `ui/gradio_app.py` **+ streaming response handler**
 17. Add feature suggestions in `utils/sdk_suggestions.py`
-18. Add iframe preview
-19. Create run script
+18. Add iframe preview and export functionality
+19. **Add real-time progress indicators** (agent status messages, validation loop visibility)
+20. Create run script
 
 ### Phase 5: Testing & Polish
-20. Write unit tests
-21. Write integration tests
-22. End-to-end manual testing
-23. Bug fixes and refinements
+21. Write unit tests
+22. Write integration tests
+23. End-to-end manual testing with streaming
+24. Bug fixes and refinements
 
 ## Success Criteria
 
 - TAM user inputs "I want push notifications and user tracking"
+- **User sees real-time progress** as each agent completes (streaming updates)
 - System generates single HTML file with:
   - Braze SDK properly initialized
   - Push notification subscription UI
@@ -670,6 +869,7 @@ webcolors>=1.13        # Color name to hex conversion
   - All working in browser
 - File passes Playwright validation (no console errors)
 - Preview shows in Gradio iframe
+- **Validation loop visible** if refinement needed (up to 3 iterations)
 - Total generation time < 2 minutes
 
 ## Reference Files
