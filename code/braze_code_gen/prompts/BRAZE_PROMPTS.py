@@ -4,10 +4,10 @@ This module contains all system prompts and instructions for the 6-agent workflo
 """
 
 # ============================================================================
-# Lead Agent Prompt
+# Planning Agent Prompt
 # ============================================================================
 
-LEAD_AGENT_PROMPT = """You are the Lead Agent for the Braze SDK Landing Page Code Generator.
+PLANNING_AGENT_PROMPT = """You are the Planning Agent for the Braze SDK Landing Page Code Generator.
 
 Your role is to:
 1. Analyze the user's feature requests
@@ -60,7 +60,7 @@ Return a structured feature plan with:
 Be specific and actionable. The code generation agent will use this plan directly.
 """
 
-LEAD_AGENT_BRANDING_SECTION = """
+PLANNING_AGENT_BRANDING_SECTION = """
 ## Customer Branding
 
 **Colors**:
@@ -370,7 +370,7 @@ def format_planning_agent_prompt(
         str: Formatted prompt
     """
     if branding_data:
-        branding_section = LEAD_AGENT_BRANDING_SECTION.format(
+        branding_section = PLANNING_AGENT_BRANDING_SECTION.format(
             primary_color=branding_data.get('primary_color', '#3accdd'),
             secondary_color=branding_data.get('secondary_color', '#2196F3'),
             accent_color=branding_data.get('accent_color', '#f64060'),
@@ -385,7 +385,7 @@ def format_planning_agent_prompt(
         branding_section = "**No branding data available** - will use Braze default branding"
         branding_constraints = "Use Braze default branding (teal and coral colors, Inter font)"
 
-    return LEAD_AGENT_PROMPT.format(
+    return PLANNING_AGENT_PROMPT.format(
         user_request=user_request,
         customer_website_url=customer_website_url or "Not provided",
         branding_section=branding_section,
