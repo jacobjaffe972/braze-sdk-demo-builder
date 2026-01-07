@@ -81,7 +81,9 @@ Multi-agent code generation system built with LangChain, LangGraph, and Gradio.
 
    # Or create .env with:
    OPENAI_API_KEY=your_openai_key_here
-   TAVILY_API_KEY=your_tavily_key_here  # Optional
+   TAVILY_API_KEY=your_tavily_key_here
+   OPIK_API_KEY=your_opik_api_here
+    OPIK_WORKSPACE=your_opik_ws_here
    BRAZE_API_KEY=your_braze_key_here
    BRAZE_BASE_URL=https://todd.braze.com
    ```
@@ -118,6 +120,7 @@ Comprehensive pattern documentation extracted from reference implementation:
 - [**TOOL_INTEGRATION.md**](docs/TOOL_INTEGRATION.md) - LangChain @tool decorators, MCP integration, safe evaluation, error handling
 - [**UI_PATTERNS.md**](docs/UI_PATTERNS.md) - Gradio chat interfaces, metadata-driven config, state management
 - [**WORKFLOW_ORCHESTRATION.md**](docs/WORKFLOW_ORCHESTRATION.md) - StateGraph, TypedDict state, conditional routing, testing
+- [**WORKFLOW_DIAGRAM.md**](docs/WORKFLOW_DIAGRAM.md) - Visual Mermaid diagrams: architecture, initialization, execution flow, state evolution
 
 ---
 
@@ -197,6 +200,7 @@ DeepResearchAgent workflow (example):
 │   ├── FACTORY_PATTERN.md
 │   ├── TOOL_INTEGRATION.md
 │   ├── UI_PATTERNS.md
+│   ├── WORKFLOW_DIAGRAM.md
 │   └── WORKFLOW_ORCHESTRATION.md
 ├── braze-docs-mcp/                   # MCP server (critical dependency)
 │   ├── server.py                    # MCP implementation
