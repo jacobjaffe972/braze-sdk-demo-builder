@@ -13,7 +13,7 @@ from opik.integrations.langchain import OpikTracer
 from braze_code_gen.core.state import CodeGenerationState, create_initial_state
 from braze_code_gen.core.models import BrazeAPIConfig
 from braze_code_gen.core.workflow import create_workflow
-from braze_code_gen.agents.lead_agent import LeadAgent
+from braze_code_gen.agents.planning_agent import PlanningAgent
 from braze_code_gen.agents.research_agent import ResearchAgent
 from braze_code_gen.agents.code_generation_agent import CodeGenerationAgent
 from braze_code_gen.agents.validation_agent import ValidationAgent
@@ -82,7 +82,7 @@ class BrazeCodeGenerator:
 
         # Build workflow
         self.workflow = create_workflow(
-            lead_agent=self.lead_agent,
+            planning_agent=self.planning_agent,
             research_agent=self.research_agent,
             code_generation_agent=self.code_generation_agent,
             validation_agent=self.validation_agent,
@@ -105,7 +105,7 @@ class BrazeCodeGenerator:
 
     def _initialize_agents(self):
         """Initialize all agent instances."""
-        self.lead_agent = LeadAgent(
+        self.planning_agent = PlanningAgent(
             llm=self.llm_gpt4o_planning,
             website_analyzer=self.website_analyzer
         )

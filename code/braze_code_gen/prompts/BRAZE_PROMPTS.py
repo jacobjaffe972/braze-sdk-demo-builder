@@ -231,13 +231,13 @@ Analyze the validation report and determine:
 
 ## Decision Criteria
 
-**Pass**: If all of these are true:
+**Pass**: If ALL of these are true:
 - Braze SDK loads successfully
 - SDK is properly initialized
 - No critical JavaScript errors
 - All features are functional
 
-**Fail**: If any of these are true:
+**Fail**: If ANY of these are true:
 - Braze SDK fails to load
 - SDK initialization fails
 - Critical JavaScript errors present
@@ -354,12 +354,12 @@ This is the final version that will be exported to the user.
 # Helper Functions
 # ============================================================================
 
-def format_lead_agent_prompt(
+def format_planning_agent_prompt(
     user_request: str,
     customer_website_url: str,
     branding_data: dict
 ) -> str:
-    """Format the lead agent prompt with context.
+    """Format the planning agent prompt with context.
 
     Args:
         user_request: User's feature request

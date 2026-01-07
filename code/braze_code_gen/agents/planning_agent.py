@@ -1,4 +1,4 @@
-"""Lead Agent - Feature planning and branding extraction.
+"""Planning Agent - Feature planning and branding extraction.
 
 This agent analyzes user requests, extracts website URLs, and creates feature plans.
 """
@@ -17,20 +17,20 @@ from braze_code_gen.core.models import (
 )
 from braze_code_gen.core.state import CodeGenerationState
 from braze_code_gen.tools.website_analyzer import WebsiteAnalyzer
-from braze_code_gen.prompts.BRAZE_PROMPTS import format_lead_agent_prompt
+from braze_code_gen.prompts.BRAZE_PROMPTS import format_planning_agent_prompt
 
 logger = logging.getLogger(__name__)
 
 
-class LeadAgent:
-    """Lead agent for feature planning and branding extraction."""
+class PlanningAgent:
+    """Planning agent for feature planning and branding extraction."""
 
     def __init__(
         self,
         model: str = "gpt-4o-mini",
         temperature: float = 0.7
     ):
-        """Initialize the lead agent.
+        """Initialize the planning agent.
 
         Args:
             model: LLM model to use
@@ -145,7 +145,7 @@ class LeadAgent:
             }
 
         # Format prompt
-        prompt = format_lead_agent_prompt(
+        prompt = format_planning_agent_prompt(
             user_request=user_request,
             customer_website_url=customer_website_url or "Not provided",
             branding_data=branding_dict

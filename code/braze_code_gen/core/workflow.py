@@ -19,7 +19,7 @@ class BrazeCodeGeneratorWorkflow:
 
     def __init__(
         self,
-        lead_agent,
+        planning_agent,
         research_agent,
         code_generation_agent,
         validation_agent,
@@ -29,14 +29,14 @@ class BrazeCodeGeneratorWorkflow:
         """Initialize workflow with agent instances.
 
         Args:
-            lead_agent: LeadAgent instance
+            planning_agent: PlanningAgent instance
             research_agent: ResearchAgent instance
             code_generation_agent: CodeGenerationAgent instance
             validation_agent: ValidationAgent instance
             refinement_agent: RefinementAgent instance
             finalization_agent: FinalizationAgent instance
         """
-        self.lead_agent = lead_agent
+        self.planning_agent = planning_agent
         self.research_agent = research_agent
         self.code_generation_agent = code_generation_agent
         self.validation_agent = validation_agent
@@ -56,7 +56,7 @@ class BrazeCodeGeneratorWorkflow:
         workflow = StateGraph(CodeGenerationState)
 
         # Add nodes for each agent
-        workflow.add_node("lead", self._lead_node)
+        workflow.add_node("planning", self._planning_node)
         workflow.add_node("research", self._research_node)
         workflow.add_node("code_generation", self._code_generation_node)
         workflow.add_node("validation", self._validation_node)
@@ -64,8 +64,8 @@ class BrazeCodeGeneratorWorkflow:
         workflow.add_node("finalization", self._finalization_node)
 
         # Linear edges for main flow
-        workflow.add_edge(START, "lead")
-        workflow.add_edge("lead", "research")
+        workflow.add_edge(START, "planning")
+        workflow.add_edge("planning", "research")
         workflow.add_edge("research", "code_generation")
         workflow.add_edge("code_generation", "validation")
 
@@ -89,10 +89,10 @@ class BrazeCodeGeneratorWorkflow:
 
     # Node wrapper functions
 
-    def _lead_node(self, state: CodeGenerationState) -> Dict[str, Any]:
-        """Lead agent node - feature planning and branding extraction."""
-        logger.info("Executing lead agent node")
-        return self.lead_agent.process(state)
+    def _planning_node(self, state: CodeGenerationState) -> Dict[str, Any]:
+        """Planning agent node - feature planning and branding extraction."""
+        logger.info("Executing planning agent node")
+        return self.planning_agent.process(state)
 
     def _research_node(self, state: CodeGenerationState) -> Dict[str, Any]:
         """Research agent node - Braze documentation research."""
@@ -232,7 +232,7 @@ class BrazeCodeGeneratorWorkflow:
             str: Formatted status message
         """
         status_messages = {
-            "lead": "✓ Feature plan created with customer branding",
+            "planning": "✓ Feature plan created with customer branding",
             "research": "✓ Braze documentation research complete",
             "code_generation": "✓ Landing page code generated",
             "validation": (
@@ -254,7 +254,7 @@ class BrazeCodeGeneratorWorkflow:
 
 
 def create_workflow(
-    lead_agent,
+    planning_agent,
     research_agent,
     code_generation_agent,
     validation_agent,
@@ -264,7 +264,7 @@ def create_workflow(
     """Factory function to create workflow instance.
 
     Args:
-        lead_agent: LeadAgent instance
+        planning_agent: PlanningAgent instance
         research_agent: ResearchAgent instance
         code_generation_agent: CodeGenerationAgent instance
         validation_agent: ValidationAgent instance
@@ -275,7 +275,7 @@ def create_workflow(
         BrazeCodeGeneratorWorkflow: Configured workflow instance
     """
     return BrazeCodeGeneratorWorkflow(
-        lead_agent=lead_agent,
+        planning_agent=planning_agent,
         research_agent=research_agent,
         code_generation_agent=code_generation_agent,
         validation_agent=validation_agent,
