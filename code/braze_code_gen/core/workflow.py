@@ -5,7 +5,7 @@ LangGraph's StateGraph pattern with conditional routing and streaming support.
 """
 
 import logging
-from typing import Dict, Any, Generator
+from typing import Dict, Any, Generator, Optional
 
 from langgraph.graph import StateGraph, START, END
 
@@ -153,19 +153,20 @@ class BrazeCodeGeneratorWorkflow:
 
     # Execution methods
 
-    def invoke(self, state: CodeGenerationState) -> Dict[str, Any]:
+    def invoke(self, state: CodeGenerationState, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Execute workflow with blocking invocation.
 
         Args:
             state: Initial workflow state
+            config: Optional LangGraph config (e.g., callbacks for tracing)
 
         Returns:
             dict: Final state after workflow completion
         """
         logger.info("Invoking workflow (blocking)")
-        return self.graph.invoke(state)
+        return self.graph.invoke(state, config=config)
 
-    def stream_workflow(self, state: CodeGenerationState) -> Generator[Dict[str, Any], None, None]:
+    def stream_workflow(self, state: CodeGenerationState, config: Optional[Dict[str, Any]] = None) -> Generator[Dict[str, Any], None, None]:
         """Stream workflow execution with intermediate updates.
 
         This method streams state updates as each node completes, providing
@@ -173,6 +174,7 @@ class BrazeCodeGeneratorWorkflow:
 
         Args:
             state: Initial workflow state
+            config: Optional LangGraph config (e.g., callbacks for tracing)
 
         Yields:
             dict: Update dictionaries with type and content:
@@ -184,7 +186,7 @@ class BrazeCodeGeneratorWorkflow:
 
         final_state = None
         try:
-            for chunk in self.graph.stream(state):
+            for chunk in self.graph.stream(state, config=config):
                 # chunk is dict with node name as key
                 if not chunk:
                     continue

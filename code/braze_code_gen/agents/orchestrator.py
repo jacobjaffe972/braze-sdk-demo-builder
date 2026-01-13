@@ -43,7 +43,7 @@ class Orchestrator:
         braze_api_config: Optional[BrazeAPIConfig] = None,
         enable_browser_testing: bool = True,
         export_dir: str = "/tmp/braze_exports",
-        opik_project_name: str = "braze-code-generator"
+        opik_project_name: str = "braze-code-gen"
     ):
         """Initialize the Braze Code Generator.
 
@@ -173,7 +173,7 @@ class Orchestrator:
         if self.tracer:
             config["callbacks"] = [self.tracer]
 
-        result = self.workflow.invoke(state)
+        result = self.workflow.invoke(state, config=config)
 
         logger.info("Landing page generation complete")
         return result
@@ -219,8 +219,12 @@ class Orchestrator:
         )
 
         # Stream workflow updates
+        config = {}
+        if self.tracer:
+            config["callbacks"] = [self.tracer]
+
         final_state = None
-        for update in self.workflow.stream_workflow(state):
+        for update in self.workflow.stream_workflow(state, config=config):
             yield update
 
             # Track final state

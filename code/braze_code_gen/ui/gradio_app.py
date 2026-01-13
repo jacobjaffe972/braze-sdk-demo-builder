@@ -17,28 +17,6 @@ from braze_code_gen.utils.sdk_suggestions import get_feature_suggestions, format
 
 logger = logging.getLogger(__name__)
 
-# Monkey-patch Gradio's _check_format to debug validation
-import gradio.components.chatbot as chatbot_module
-_original_check_format = chatbot_module.Chatbot._check_format
-
-@staticmethod
-def _debug_check_format(messages):
-    logger.error(f"=== GRADIO _check_format CALLED ===")
-    logger.error(f"Type: {type(messages)}")
-    logger.error(f"Value: {messages}")
-    if isinstance(messages, list):
-        logger.error(f"Length: {len(messages)}")
-        for i, msg in enumerate(messages):
-            logger.error(f"  [{i}] type={type(msg)}, value={msg}")
-            if isinstance(msg, dict):
-                logger.error(f"  [{i}] has 'role': {'role' in msg}")
-                logger.error(f"  [{i}] has 'content': {'content' in msg}")
-                logger.error(f"  [{i}] isinstance(dict)={isinstance(msg, dict)}")
-    logger.error(f"=== END _check_format ===")
-    return _original_check_format(messages)
-
-chatbot_module.Chatbot._check_format = _debug_check_format
-
 
 class BrazeCodeGenUI:
     """Gradio UI wrapper for Braze Code Generator."""

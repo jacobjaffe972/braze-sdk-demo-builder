@@ -4,7 +4,7 @@ This directory contains the Gradio-based web interface for the Braze SDK Landing
 
 ## Features
 
-### 🎯 Three-Section Workflow
+### Three-Section Workflow
 
 The UI is organized into three accordion sections that guide users through the generation process:
 
@@ -31,7 +31,7 @@ The UI is organized into three accordion sections that guide users through the g
 - **Branding Tab**: View extracted branding data (colors, fonts)
 - **Download**: Export HTML file for deployment
 
-### ✨ Key Capabilities
+### Key Capabilities
 
 - **Real-Time Streaming**: Watch the 6-agent workflow execute in real-time
 - **Automatic Branding**: Extracts colors and fonts from customer websites
@@ -125,8 +125,8 @@ Optional environment variables (set in `.env`):
 
 ```bash
 # Pre-populate API configuration
-BRAZE_API_KEY=your_api_key_here
-BRAZE_BASE_URL=https://rest.iad-01.braze.com
+BRAZE_API_KEY=edc26b45-1538-4a6c-bd3f-3b95ee52d784
+BRAZE_SDK_ENDPOINT=sondheim.braze.com
 
 # OpenAI API key (required for LLM calls)
 OPENAI_API_KEY=your_openai_key_here

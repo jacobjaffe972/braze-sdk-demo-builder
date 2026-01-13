@@ -14,6 +14,12 @@ import argparse
 import logging
 import os
 import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file in repository root
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Configure logging
 logging.basicConfig(
@@ -78,7 +84,7 @@ def main():
 
     # Check for required environment variables
     braze_api_key = os.getenv("BRAZE_API_KEY")
-    braze_base_url = os.getenv("BRAZE_BASE_URL")
+    braze_sdk_endpoint = os.getenv("BRAZE_SDK_ENDPOINT")
 
     if not braze_api_key:
         logger.warning(
@@ -86,10 +92,10 @@ def main():
             "Users will need to enter API key manually in the UI."
         )
 
-    if not braze_base_url:
+    if not braze_sdk_endpoint:
         logger.warning(
-            "BRAZE_BASE_URL not set in environment. "
-            "Defaulting to https://todd.braze.com"
+            "BRAZE_SDK_ENDPOINT not set in environment. "
+            "Defaulting to sondheim.braze.com"
         )
 
     # Check Playwright installation if browser testing enabled

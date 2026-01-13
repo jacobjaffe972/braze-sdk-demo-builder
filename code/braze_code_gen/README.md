@@ -6,22 +6,22 @@
 
 ---
 
-## 🚀 Overview
+## Overview
 
 The Braze SDK Landing Page Generator is a sophisticated multi-agent system that automatically creates fully functional, branded HTML landing pages featuring Braze SDK integrations. Built with LangGraph and powered by GPT-4, it streamlines the process of creating SDK demos for customers.
 
 ### Key Features
 
-- **🤖 6-Agent Workflow**: Sequential pipeline with specialized agents for each task
-- **🎨 Automatic Branding**: Extracts colors and fonts from customer websites
-- **✅ Browser Validation**: Optional Playwright-based testing for code quality
-- **📊 Real-time Streaming**: Watch agents work with live progress updates
-- **📦 Single-File Output**: Self-contained HTML with inline CSS and JavaScript
-- **🔧 Easy Customization**: Natural language requests, no coding required
+- **6-Agent Workflow**: Sequential pipeline with specialized agents for each task
+- **Automatic Branding**: Extracts colors and fonts from customer websites
+- **Browser Validation**: Optional Playwright-based testing for code quality
+- **Real-time Streaming**: Watch agents work with live progress updates
+- **Single-File Output**: Self-contained HTML with inline CSS and JavaScript
+- **Easy Customization**: Natural language requests, no coding required
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Architecture](#architecture)
 - [Installation](#installation)
@@ -36,7 +36,7 @@ The Braze SDK Landing Page Generator is a sophisticated multi-agent system that 
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Multi-Agent Workflow
 
@@ -106,7 +106,7 @@ braze_code_gen/
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
@@ -115,7 +115,7 @@ braze_code_gen/
   - OpenAI API key (default)
   - Anthropic API key
   - Google API key
-- Braze API credentials (for generated pages)
+- Braze API credentials (for SDK initialization)
 - Playwright (optional, for browser testing)
 
 ### Setup
@@ -154,13 +154,13 @@ braze_code_gen/
    # GOOGLE_API_KEY=your_google_key_here
 
    # Braze credentials (optional defaults)
-   BRAZE_API_KEY=your_braze_api_key
-   BRAZE_BASE_URL=https://rest.iad-01.braze.com
+   BRAZE_API_KEY=edc26b45-1538-4a6c-bd3f-3b95ee52d784
+   BRAZE_SDK_ENDPOINT=sondheim.braze.com
    ```
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Launch the UI
 
@@ -196,7 +196,7 @@ python -m braze_code_gen --export-dir /path/to/exports
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### Web UI Workflow
 
@@ -260,7 +260,7 @@ for update in orchestrator.generate_streaming(
 
 ---
 
-## 🤖 Agent Details
+## Agent Details
 
 ### 1. Planning Agent
 
@@ -385,8 +385,8 @@ ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=...
 
 # Optional defaults for UI
-BRAZE_API_KEY=your_key
-BRAZE_BASE_URL=https://rest.iad-01.braze.com
+BRAZE_API_KEY=edc26b45-1538-4a6c-bd3f-3b95ee52d784
+BRAZE_SDK_ENDPOINT=sondheim.braze.com
 
 # Debug settings
 DEBUG=false
@@ -431,7 +431,7 @@ factory = LLMFactory(config)
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Run All Tests
 
@@ -465,7 +465,7 @@ pytest tests/test_agents.py -v -k "initialization"
 
 ---
 
-## 🛠️ Development
+## Development
 
 ### Adding New Features
 
@@ -521,7 +521,7 @@ tracker.print_summary()
 
 ---
 
-## ❓ Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -571,7 +571,7 @@ Creates detailed logs in `/tmp/braze_debug/` with:
 
 ---
 
-## 📚 API Reference
+## API Reference
 
 ### Core Classes
 
@@ -640,25 +640,3 @@ class CodeGenerationState(TypedDict):
 ```
 
 ---
-
-## 📄 License
-
-This project is part of the Claude Code ecosystem. See main repository for license details.
-
----
-
-## 🙏 Acknowledgments
-
-- **LangChain/LangGraph**: Workflow orchestration
-- **OpenAI**: GPT-4 models
-- **Braze**: SDK and documentation
-- **Gradio**: Web interface
-- **Playwright**: Browser automation
-
----
-
-## 📞 Support
-
-For issues, questions, or contributions, please refer to the main Claude Code repository.
-
-**Built with ❤️ by the Claude Code team**

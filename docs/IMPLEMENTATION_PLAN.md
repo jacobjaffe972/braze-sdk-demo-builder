@@ -30,7 +30,7 @@ Following the proven delegation pattern from [react_multi_agent.py](code/deep_re
 ```
 User Opens Gradio UI
     ↓
-API Configuration Form (validate API key + REST endpoint)
+API Configuration Form (validate API key + SDK endpoint)
     ↓
 User Input (Gradio chat: features + customer website URL)
     ↓
@@ -616,10 +616,10 @@ def create_braze_ui():
                 placeholder="Enter your Braze API key",
                 type="password"
             )
-            rest_endpoint_input = gr.Textbox(
-                label="REST Endpoint",
-                placeholder="https://rest.iad-01.braze.com",
-                value="https://todd.braze.com"  # Default from .env
+            sdk_endpoint_input = gr.Textbox(
+                label="SDK Endpoint",
+                placeholder="sondheim.braze.com",
+                value="sondheim.braze.com"  # Default from .env
             )
             validate_btn = gr.Button("Validate & Continue", variant="primary")
             validation_status = gr.Markdown("")

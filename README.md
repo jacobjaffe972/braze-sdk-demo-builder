@@ -8,32 +8,32 @@
 
 ---
 
-## 🚀 Overview
+## Overview
 
 The Braze SDK Landing Page Generator is a sophisticated **multi-agent system** that automatically creates fully functional, branded HTML landing pages featuring Braze SDK integrations. Built with LangGraph and supporting **multiple LLM providers** (OpenAI, Anthropic, Google), it streamlines the process of creating SDK demos for customers.
 
-### ✨ Key Features
+### Key Features
 
-- 🤖 **6-Agent Workflow**: Sequential pipeline with specialized agents for planning, research, generation, validation, refinement, and finalization
-- 🎨 **Automatic Branding**: Extracts colors and fonts from customer websites
-- 🔄 **Multi-Provider LLM Support**: Choose between OpenAI, Anthropic Claude, or Google Gemini
-- ✅ **Browser Validation**: Playwright-based testing for code quality
-- 📊 **Real-time Streaming**: Watch agents work with live progress updates
-- 📦 **Single-File Output**: Self-contained HTML with inline CSS and JavaScript
-- 🔧 **Natural Language**: No coding required - describe what you want
+- **6-Agent Workflow**: Sequential pipeline with specialized agents for planning, research, generation, validation, refinement, and finalization
+- **Automatic Branding**: Extracts colors and fonts from customer websites
+- **Multi-Provider LLM Support**: Choose between OpenAI, Anthropic Claude, or Google Gemini
+- **Browser Validation**: Playwright-based testing for code quality
+- **Real-time Streaming**: Watch agents work with live progress updates
+- **Single-File Output**: Self-contained HTML with inline CSS and JavaScript
+- **Natural Language**: No coding required - describe what you want
 
 ---
 
-## 📖 Quick Links
+## Quick Links
 
 - **[Detailed Documentation](code/braze_code_gen/README.md)** - Complete guide and API reference
 - **[LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md)** - Multi-provider setup and cost optimization
-- **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Architecture and design decisions
+- **[Workflow Diagrams](docs/WORKFLOW_DIAGRAMS.md)** - High level architecture and sequence diagrams
 - **[Pattern Documentation](docs/)** - LangChain/LangGraph best practices
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
@@ -45,7 +45,7 @@ The Braze SDK Landing Page Generator is a sophisticated **multi-agent system** t
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
@@ -90,13 +90,13 @@ The Braze SDK Landing Page Generator is a sophisticated **multi-agent system** t
    # Edit .env with your credentials
    # MODEL_PROVIDER=openai  # or anthropic, google
    # OPENAI_API_KEY=sk-...
-   # BRAZE_API_KEY=...
-   # BRAZE_BASE_URL=https://...
+   # BRAZE_API_KEY=edc26b45-1538-4a6c-bd3f-3b95ee52d784
+   # BRAZE_SDK_ENDPOINT=sondheim.braze.com
    ```
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Launch Web UI
 
@@ -154,7 +154,7 @@ print(f"Generated: {result['export_file_path']}")
 
 ---
 
-## 🔄 LLM Provider Configuration
+## LLM Provider Configuration
 
 The generator supports **three LLM providers** with simple environment-based switching:
 
@@ -239,7 +239,7 @@ code-gen-agent/
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Multi-Agent Workflow
 
@@ -284,7 +284,7 @@ User Input (features + website URL)
     ├─ Export HTML file with JSON sidecar
     └─ Mark workflow complete
     ↓
-✅ User downloads generated landing page
+User downloads generated landing page
 ```
 
 ### Technology Stack
@@ -300,7 +300,7 @@ User Input (features + website URL)
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 ### Product Documentation
 - **[Main Documentation](code/braze_code_gen/README.md)** - Complete user guide, API reference, troubleshooting
@@ -318,7 +318,7 @@ User Input (features + website URL)
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Run All Tests
 
@@ -345,7 +345,7 @@ pytest tests/test_ui.py -v
 
 ---
 
-## 📊 Development Status
+## Development Status
 
 | Component                | Status          | Progress |
 |--------------------------|-----------------|----------|
@@ -359,14 +359,14 @@ pytest tests/test_ui.py -v
 | Test Coverage            | 🚧 In Progress  | ~70%     |
 
 **Latest Updates**:
-- ✅ Added multi-provider LLM support (OpenAI, Anthropic, Google)
-- ✅ Implemented tier-based model selection
-- ✅ Created comprehensive LLM configuration guide
-- ✅ Updated all 6 agents to use factory pattern
+- Added multi-provider LLM support (OpenAI, Anthropic, Google)
+- Implemented tier-based model selection
+- Created comprehensive LLM configuration guide
+- Updated all 6 agents to use factory pattern
 
 ---
 
-## 🛠️ Development
+## Development
 
 ### Adding New Features
 
@@ -384,7 +384,7 @@ tail -f /tmp/braze_exports/*.log
 
 ---
 
-## ❓ FAQ
+## FAQ
 
 **Q: Which LLM provider should I use?**
 A: Start with Google Gemini for cost efficiency during development. Switch to Anthropic Claude for highest quality, or OpenAI for balance.
@@ -403,12 +403,11 @@ A: See [LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md#a
 
 ---
 
-## 🙏 Acknowledgments
+# Built with:
 
-Built with:
 - [LangChain](https://python.langchain.com/) / [LangGraph](https://langchain-ai.github.io/langgraph/) - Workflow orchestration
 - [OpenAI](https://openai.com/) - GPT-4 models
-- [Anthropic](https://www.anthropic.com/) - Claude models
+- [Anthropic](https://www.anthropic.com/) - Claude models + Claude Code
 - [Google](https://ai.google.dev/) - Gemini models
 - [Gradio](https://www.gradio.app/) - Web interface
 - [Playwright](https://playwright.dev/) - Browser automation
@@ -421,9 +420,3 @@ Built with:
 Private repository. Not licensed for distribution.
 
 ---
-
-## 📞 Contact
-
-For questions or issues, please refer to the documentation in `/docs/` and `code/braze_code_gen/README.md`.
-
-**Built with ❤️ using Claude Code**

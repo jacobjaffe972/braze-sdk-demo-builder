@@ -247,7 +247,7 @@ def create_advanced_demo():
         # Section 1: API Configuration
         with gr.Accordion("1. Configure API", open=True) as section1:
             api_key = gr.Textbox(label="API Key", type="password")
-            endpoint = gr.Textbox(label="REST Endpoint", value="https://todd.braze.com")
+            endpoint = gr.Textbox(label="SDK Endpoint", value="sondheim.braze.com")
             validate_btn = gr.Button("Validate & Continue")
             validation_status = gr.Markdown("")
 

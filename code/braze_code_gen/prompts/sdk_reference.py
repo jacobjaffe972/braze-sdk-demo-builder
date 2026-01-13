@@ -8,7 +8,7 @@ guide the code generation agent in producing correct SDK integrations.
 SDK_REFERENCE_EXAMPLES = """
 **CRITICAL INSTRUCTION**: The base template already includes SDK initialization with the
 ACTUAL API key and SDK endpoint from the user's Braze configuration. DO NOT copy the
-placeholder patterns below (like 'BRAZE_API_KEY' or 'BRAZE_BASE_URL') into your generated
+placeholder patterns below (like 'BRAZE_API_KEY' or 'BRAZE_SDK_ENDPOINT') into your generated
 code. Instead, PRESERVE the real API key and baseUrl values that are already configured
 in the base template's braze.initialize() call.
 
@@ -33,7 +33,7 @@ NEVER output placeholder strings - always use the actual configured values from 
     y.async=1;
     y.onload = function() {
         braze.initialize('BRAZE_API_KEY', {
-            baseUrl: "BRAZE_BASE_URL",
+            baseUrl: "BRAZE_SDK_ENDPOINT",
             allowUserSuppliedJavascript: true,
             minimumIntervalBetweenTriggerActionsInSeconds: 0,
             enableLogging: true
