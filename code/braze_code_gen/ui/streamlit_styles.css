@@ -1,0 +1,133 @@
+/* ============================================
+   Braze Landing Page Generator - Streamlit Styles
+   ============================================ */
+
+/* Root CSS Variables */
+:root {
+    --braze-teal: #3accdd;
+    --braze-coral: #f64060;
+    --braze-blue: #2196F3;
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-700: #334155;
+    --slate-900: #0f172a;
+    --green-500: #10b981;
+    --green-700: #065f46;
+    --red-500: #ef4444;
+}
+
+/* Hide Streamlit Branding */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Braze Header */
+.braze-header {
+    background: white;
+    border-bottom: 1px solid var(--slate-200);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: -16px -16px 24px -16px;
+    border-radius: 12px 12px 0 0;
+}
+
+.braze-logo {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--braze-teal), var(--braze-blue));
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.braze-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--slate-900);
+    margin: 0;
+}
+
+/* Status Card */
+.status-card-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--slate-700);
+    margin-bottom: 12px;
+}
+
+/* Success Card */
+.success-card-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--green-700);
+    margin-bottom: 16px;
+}
+
+/* Agent Sidebar Header */
+.agent-sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--braze-teal), var(--braze-blue));
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.braze-logo-small {
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.agent-sidebar-header span {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Thinking Spinner */
+.thinking-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: var(--braze-teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Status Spinner (in main area) */
+.status-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--slate-200);
+    border-top-color: var(--braze-teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .braze-header {
+        padding: 12px 16px;
+    }
+
+    .braze-title {
+        font-size: 16px;
+    }
+}

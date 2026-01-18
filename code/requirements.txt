@@ -31,7 +31,7 @@ langchain-text-splitters>=0.0.1
 opik>=0.1.0
 
 # UI
-gradio>=4.0.0
+streamlit>=1.30.0
 
 # Utilities
 python-dotenv>=1.0.0

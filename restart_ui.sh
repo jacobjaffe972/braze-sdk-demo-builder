@@ -3,9 +3,9 @@
 
 echo "🔄 Restarting Braze UI with clean state..."
 
-# 1. Kill any running Gradio processes
-echo "1. Killing old Gradio processes..."
-pkill -f "gradio_app.py" 2>/dev/null || true
+# 1. Kill any running UI processes
+echo "1. Killing old UI processes..."
+pkill -f "streamlit" 2>/dev/null || true
 pkill -f "braze_code_gen" 2>/dev/null || true
 sleep 1
 

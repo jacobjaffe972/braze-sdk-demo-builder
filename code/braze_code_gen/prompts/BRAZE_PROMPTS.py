@@ -41,13 +41,17 @@ Create a detailed feature plan that includes:
 ## Available Braze SDK Features
 
 Common features include:
-- **User Tracking**: logCustomEvent(), setCustomUserAttribute()
-- **Push Notifications**: requestPushPermission(), subscribeUser()
-- **Email Subscription**: addAlias(), setEmail()
-- **In-App Messages**: Display triggered messages
-- **User Identification**: changeUser(), setUserId()
-- **Content Cards**: Display content cards
-- **User Properties**: setFirstName(), setLastName(), setGender(), setDateOfBirth()
+- **User Identification**: braze.changeUser(userId)
+- **User Tracking**: braze.logCustomEvent(eventName, properties)
+- **Custom User Attributes**: braze.getUser().setCustomUserAttribute(key, value), braze.getUser().addToCustomAttributeArray(), braze.getUser().incrementCustomUserAttribute()
+- **Standard User Attributes**: braze.getUser().setFirstName(), braze.getUser().setLastName(), braze.getUser().setEmail(), braze.getUser().setGender(), braze.getUser().setDateOfBirth(), braze.getUser().setPhoneNumber()
+- **Purchase Tracking**: braze.logPurchase(productId, price, currencyCode, quantity, properties)
+- **Push Notifications**: braze.requestPushPermission(), braze.isPushSupported(), braze.isPushPermissionGranted(), braze.getUser().setPushNotificationSubscriptionType()
+- **In-App Messages**: braze.automaticallyShowInAppMessages(), braze.subscribeToInAppMessage(), braze.showInAppMessage(), braze.logInAppMessageImpression(), braze.logInAppMessageClick(), braze.logInAppMessageButtonClick()
+- **Content Cards**: braze.subscribeToContentCardsUpdates(), braze.showContentCards(), braze.hideContentCards(), braze.toggleContentCards(), braze.requestContentCardsRefresh(), braze.logContentCardImpressions(), braze.logContentCardClick()
+- **Feature Flags**: braze.refreshFeatureFlags(), braze.getAllFeatureFlags(), braze.getFeatureFlag(), braze.logFeatureFlagImpression(), braze.subscribeToFeatureFlagsUpdates()
+- **User Aliases & Subscription Groups**: braze.getUser().addAlias(), braze.getUser().addToSubscriptionGroup(), braze.getUser().removeFromSubscriptionGroup(), braze.getUser().setEmailNotificationSubscriptionType()
+- **Data Management**: braze.requestImmediateDataFlush(), braze.getDeviceId(), braze.enableSDK(), braze.disableSDK()
 
 ## Output Format
 

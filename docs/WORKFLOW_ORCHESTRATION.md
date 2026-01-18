@@ -20,7 +20,7 @@ This document describes patterns for orchestrating complex multi-step agent work
 **Intent**: Define multi-step workflows with state management and conditional routing using LangGraph's StateGraph.
 
 ### Core Components
-
+1
 ```python
 from langgraph.graph import StateGraph, START, END
 from typing import TypedDict, Annotated, Sequence

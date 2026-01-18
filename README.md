@@ -109,7 +109,7 @@ cd code
 python -m braze_code_gen
 ```
 
-Then open **http://localhost:7860** in your browser.
+Then open **http://localhost:8501** in your browser.
 
 ### Command Line Options
 
@@ -224,7 +224,7 @@ code-gen-agent/
 │       ├── prompts/          # System prompts
 │       ├── tests/            # Test suites
 │       ├── tools/            # MCP, browser testing, website analyzer
-│       ├── ui/               # Gradio interface
+│       ├── ui/               # Streamlit interface
 │       └── utils/            # Utilities and helpers
 │
 └── docs/                     # Architecture & patterns
@@ -232,8 +232,7 @@ code-gen-agent/
     ├── FACTORY_PATTERN.md    # Factory and interfaces
     ├── IMPLEMENTATION_PLAN.md # Architecture decisions
     ├── TOOL_INTEGRATION.md   # Tool usage patterns
-    ├── UI_PATTERNS.md        # Gradio UI patterns
-    ├── WORKFLOW_DIAGRAM.md   # Visual diagrams
+    ├── WORKFLOW_DIAGRAMS.md  # Visual diagrams
     └── WORKFLOW_ORCHESTRATION.md # StateGraph patterns
 ```
 
@@ -287,11 +286,11 @@ User Input (features + website URL)
 User downloads generated landing page
 ```
 
-### Technology Stack
+### Tech Stack
 
 - **Orchestration**: LangGraph (StateGraph pattern)
 - **LLMs**: Multi-provider (OpenAI, Anthropic, Google) via LangChain
-- **UI**: Gradio with streaming support
+- **UI**: Streamlit with streaming support
 - **Validation**: Playwright (headless browser testing)
 - **Documentation**: Braze Docs MCP server (cached)
 - **Observability**: Opik tracing
@@ -305,16 +304,15 @@ User downloads generated landing page
 ### Product Documentation
 - **[Main Documentation](code/braze_code_gen/README.md)** - Complete user guide, API reference, troubleshooting
 - **[LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md)** - Provider setup, cost optimization, model mappings
-- **[UI Documentation](code/braze_code_gen/ui/README.md)** - Gradio interface guide
+- **[UI Documentation](code/braze_code_gen/ui/README.md)** - Streamlit interface guide
 
 ### Architecture & Patterns
 - **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Architecture decisions, 5-phase development plan
 - **[Agent Patterns](docs/AGENT_PATTERNS.md)** - ReAct delegation, StateGraph workflows, tool integration
 - **[Factory Pattern](docs/FACTORY_PATTERN.md)** - LLM factory, provider abstraction
 - **[Tool Integration](docs/TOOL_INTEGRATION.md)** - MCP integration, browser testing, web scraping
-- **[UI Patterns](docs/UI_PATTERNS.md)** - Gradio interfaces, streaming, state management
 - **[Workflow Orchestration](docs/WORKFLOW_ORCHESTRATION.md)** - LangGraph StateGraph, routing, error handling
-- **[Workflow Diagram](docs/WORKFLOW_DIAGRAM.md)** - Visual Mermaid diagrams of system architecture
+- **[Workflow Diagrams](docs/WORKFLOW_DIAGRAMS.md)** - Visual Mermaid diagrams of system architecture
 
 ---
 
@@ -338,39 +336,9 @@ pytest tests/test_workflow.py -v
 
 # End-to-end tests
 pytest tests/test_e2e.py -v
-
-# UI tests
-pytest tests/test_ui.py -v
 ```
 
 ---
-
-## Development Status
-
-| Component                | Status          | Progress |
-|--------------------------|-----------------|----------|
-| LLM Multi-Provider       | ✅ Complete     | 100%     |
-| 6-Agent Workflow         | ✅ Complete     | 100%     |
-| Website Branding Extract | ✅ Complete     | 100%     |
-| Browser Testing          | ✅ Complete     | 100%     |
-| Gradio UI                | ✅ Complete     | 100%     |
-| Braze Docs MCP           | ✅ Complete     | 50+ pages |
-| Documentation            | ✅ Complete     | 8 docs   |
-| Test Coverage            | 🚧 In Progress  | ~70%     |
-
-**Latest Updates**:
-- Added multi-provider LLM support (OpenAI, Anthropic, Google)
-- Implemented tier-based model selection
-- Created comprehensive LLM configuration guide
-- Updated all 6 agents to use factory pattern
-
----
-
-## Development
-
-### Adding New Features
-
-See the detailed documentation in [code/braze_code_gen/README.md](code/braze_code_gen/README.md#development).
 
 ### Debugging
 
@@ -384,32 +352,13 @@ tail -f /tmp/braze_exports/*.log
 
 ---
 
-## FAQ
-
-**Q: Which LLM provider should I use?**
-A: Start with Google Gemini for cost efficiency during development. Switch to Anthropic Claude for highest quality, or OpenAI for balance.
-
-**Q: How do I switch providers?**
-A: Update `MODEL_PROVIDER` in `.env` and restart. No code changes needed!
-
-**Q: Can I use different providers for different agents?**
-A: Not currently - all agents use the same provider. This is by design for simplicity.
-
-**Q: What if website branding extraction fails?**
-A: The system falls back to Braze default branding (teal/coral colors, Inter/Poppins fonts).
-
-**Q: How do I customize model names?**
-A: See [LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md#advanced-configuration) for programmatic overrides.
-
----
-
 # Built with:
 
 - [LangChain](https://python.langchain.com/) / [LangGraph](https://langchain-ai.github.io/langgraph/) - Workflow orchestration
 - [OpenAI](https://openai.com/) - GPT-4 models
 - [Anthropic](https://www.anthropic.com/) - Claude models + Claude Code
 - [Google](https://ai.google.dev/) - Gemini models
-- [Gradio](https://www.gradio.app/) - Web interface
+- [Streamlit](https://streamlit.io/) - Web interface
 - [Playwright](https://playwright.dev/) - Browser automation
 - [Braze](https://www.braze.com/) - SDK and documentation
 

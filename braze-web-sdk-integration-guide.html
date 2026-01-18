@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braze Web SDK Integration Guide</title>
+    <style>
+        /* ============================================
+           STYLES - Customize as needed
+           ============================================ */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            margin: 0 0 10px 0;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px 5px 5px 0;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5a6fd6;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.success {
+            background: #28a745;
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .inline-form input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #content-cards-container {
+            min-height: 100px;
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding-top: 15px;
+        }
+
+        .collapsible-content.active {
+            display: block;
+        }
+
+        .toggle-btn {
+            width: 100%;
+            text-align: left;
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .toggle-btn:hover {
+            background: #e9ecef;
+        }
+
+        .toggle-btn::after {
+            content: '+';
+            float: right;
+        }
+
+        .toggle-btn.active::after {
+            content: '−';
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Braze Web SDK Integration Guide</h1>
+        <p>Complete end-to-end integration example with all SDK features</p>
+    </header>
+
+    <!-- ============================================
+         SECTION 1: SDK INITIALIZATION
+         ============================================ -->
+    <div class="section">
+        <h2>1. SDK Initialization</h2>
+        <p>The Braze Web SDK must be loaded and initialized before any other SDK calls. Below is the async loader snippet that should be placed in your <code>&lt;head&gt;</code> or at the start of <code>&lt;body&gt;</code>.</p>
+
+        <div class="note">
+            <strong>Configuration Required:</strong> Replace the API key and baseUrl with your Braze workspace credentials.
+        </div>
+
+        <pre><code>&lt;!-- BRAZE SDK ASYNC LOADER --&gt;
+&lt;script type="text/javascript"&gt;
++function(a,p,P,b,y){
+    a.braze={};
+    a.brazeQueue=[];
+    // Creates stub methods that queue calls until SDK loads
+    for(var s="BrazeSdkMetadata DeviceProperties Card Card.prototype.dismissCard Card.prototype.removeAllSubscriptions Card.prototype.removeSubscription Card.prototype.subscribeToClickedEvent Card.prototype.subscribeToDismissedEvent Card.fromContentCardsJson ImageOnly CaptionedImage ClassicCard ControlCard ContentCards ContentCards.prototype.getUnviewedCardCount Feed Feed.prototype.getUnreadCardCount ControlMessage InAppMessage InAppMessage.SlideFrom InAppMessage.ClickAction InAppMessage.DismissType InAppMessage.OpenTarget InAppMessage.ImageStyle InAppMessage.Orientation InAppMessage.TextAlignment InAppMessage.CropType InAppMessage.prototype.closeMessage InAppMessage.prototype.removeAllSubscriptions InAppMessage.prototype.removeSubscription InAppMessage.prototype.subscribeToClickedEvent InAppMessage.prototype.subscribeToDismissedEvent InAppMessage.fromJson FullScreenMessage ModalMessage HtmlMessage SlideUpMessage User User.Genders User.NotificationSubscriptionTypes User.prototype.addAlias User.prototype.addToCustomAttributeArray User.prototype.addToSubscriptionGroup User.prototype.getUserId User.prototype.getUserId User.prototype.incrementCustomUserAttribute User.prototype.removeFromCustomAttributeArray User.prototype.removeFromSubscriptionGroup User.prototype.setCountry User.prototype.setCustomLocationAttribute User.prototype.setCustomUserAttribute User.prototype.setDateOfBirth User.prototype.setEmail User.prototype.setEmailNotificationSubscriptionType User.prototype.setFirstName User.prototype.setGender User.prototype.setHomeCity User.prototype.setLanguage User.prototype.setLastKnownLocation User.prototype.setLastName User.prototype.setPhoneNumber User.prototype.setPushNotificationSubscriptionType User.prototype.setLineId InAppMessageButton InAppMessageButton.prototype.removeAllSubscriptions InAppMessageButton.prototype.removeSubscription InAppMessageButton.prototype.subscribeToClickedEvent FeatureFlag FeatureFlag.prototype.getStringProperty FeatureFlag.prototype.getNumberProperty FeatureFlag.prototype.getBooleanProperty FeatureFlag.prototype.getImageProperty FeatureFlag.prototype.getJsonProperty FeatureFlag.prototype.getTimestampProperty Banner automaticallyShowInAppMessages destroyFeed hideContentCards showContentCards showFeed showInAppMessage deferInAppMessage toggleContentCards toggleFeed changeUser destroy getDeviceId getDeviceId initialize isPushBlocked isPushPermissionGranted isPushSupported logCardClick logCardDismissal logCardImpressions logContentCardImpressions logContentCardClick logCustomEvent logFeedDisplayed logInAppMessageButtonClick logInAppMessageClick logInAppMessageHtmlClick logInAppMessageImpression logPurchase openSession requestPushPermission removeAllSubscriptions removeSubscription requestContentCardsRefresh requestFeedRefresh refreshFeatureFlags requestImmediateDataFlush enableSDK isDisabled setLogger setSdkAuthenticationSignature addSdkMetadata disableSDK subscribeToContentCardsUpdates subscribeToFeedUpdates subscribeToInAppMessage subscribeToSdkAuthenticationFailures toggleLogging unregisterPush wipeData handleBrazeAction subscribeToFeatureFlagsUpdates getAllFeatureFlags logFeatureFlagImpression requestBannersRefresh insertBanner logBannerClick logBannerImpressions getAllBanners subscribeToBannersUpdates isInitialized".split(" "),i=0;i&lt;s.length;i++){
+        for(var m=s[i],k=a.braze,l=m.split("."),j=0;j&lt;l.length-1;j++)k=k[l[j]];
+        k[l[j]]=(new Function("return function "+m.replace(/\\./g,"_")+"(){window.brazeQueue.push(arguments); return true}"))()
+    }
+    window.braze.getDeferredInAppMessage=function(){return new window.braze.InAppMessage};
+    window.braze.getCachedContentCards=function(){return new window.braze.ContentCards};
+    window.braze.getCachedFeed=function(){return new window.braze.Feed};
+    window.braze.getUser=function(){return new window.braze.User};
+    window.braze.getFeatureFlag=function(){return new window.braze.FeatureFlag};
+    window.braze.getBanner=function(){return new window.braze.Banner};
+    window.braze.newBannerFromJson=function(){return new window.braze.Banner};
+
+    // Load the SDK script asynchronously
+    (y=p.createElement(P)).type='text/javascript';
+    y.src='https://js.appboycdn.com/web-sdk/5.7/braze.min.js';
+    y.async=1;
+
+    // Initialize SDK after script loads
+    y.onload = function() {
+        braze.initialize('YOUR_API_KEY', {
+            baseUrl: "YOUR_SDK_ENDPOINT",       // e.g., "sdk.iad-01.braze.com"
+            allowUserSuppliedJavascript: true,  // Required for HTML in-app messages
+            minimumIntervalBetweenTriggerActionsInSeconds: 0,
+            enableLogging: true                  // Set to false in production
+        });
+
+        // Open a session to start tracking
+        braze.openSession();
+
+        // Request initial content cards
+        braze.requestContentCardsRefresh();
+
+        // Subscribe to content card updates
+        braze.subscribeToContentCardsUpdates(function(cards) {
+            console.log("Content Cards Updated:", cards);
+        });
+    };
+
+    (b=p.getElementsByTagName(P)[0]).parentNode.insertBefore(y,b);
+}(window,document,'script');
+&lt;/script&gt;</code></pre>
+    </div>
+
+    <!-- ============================================
+         SECTION 2: USER IDENTIFICATION
+         ============================================ -->
+    <div class="section">
+        <h2>2. User Identification</h2>
+        <p>Identify users to enable cross-device tracking and personalization.</p>
+
+        <button class="toggle-btn" onclick="toggleSection('user-id-section')">Change User / Set User ID</button>
+        <div id="user-id-section" class="collapsible-content">
+            <div class="inline-form">
+                <input type="text" id="change_user_text" placeholder="Enter User ID">
+                <button id="change_user_button">Set User ID</button>
+            </div>
+            <div id="user-id-status" class="status-message"></div>
+
+            <pre><code>// Change the current user (call after login/signup)
+braze.changeUser("user_id_123");
+
+// For URL-based user identification (e.g., email links)
+function getUserFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedUserId = urlParams.get("id");
+    if (encodedUserId) {
+        const decodedUserId = atob(encodedUserId); // Base64 decode
+        braze.changeUser(decodedUserId);
+    }
+}</code></pre>
+        </div>
+    </div>
+
+    <!-- ============================================
+         SECTION 3: USER ATTRIBUTES
+         ============================================ -->
+    <div class="section">
+        <h2>3. User Attributes</h2>
+        <p>Set standard and custom user attributes for segmentation and personalization.</p>
+
+        <button class="toggle-btn" onclick="toggleSection('user-attrs-section')">Set User Attributes</button>
+        <div id="user-attrs-section" class="collapsible-content">
+
+            <!-- First Name -->
+            <div class="form-group">
+                <label>First Name</label>
+                <div class="inline-form">
+                    <input type="text" id="fn_text" placeholder="Enter first name">
+                    <button id="fn_button">Set</button>
+                </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="form-group">
+                <label>Last Name</label>
+                <div class="inline-form">
+                    <input type="text" id="ln_text" placeholder="Enter last name">
+                    <button id="ln_button">Set</button>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="inline-form">
+                    <input type="email" id="email_text" placeholder="Enter email">
+                    <button id="email_button">Set</button>
+                </div>
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+                <label>Gender</label>
+                <div class="inline-form">
+                    <select id="gender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="unknown">Unknown</option>
+                        <option value="not_applicable">Not Applicable</option>
+                        <option value="prefer_not_to_say">Prefer Not To Say</option>
+                    </select>
+                    <button id="gender_button">Set</button>
+                </div>
+            </div>
+
+            <!-- Birthday -->
+            <div class="form-group">
+                <label>Birthday</label>
+                <div class="inline-form">
+                    <input type="date" id="birthday">
+                    <button id="birthday_button">Set</button>
+                </div>
+            </div>
+
+            <!-- Country -->
+            <div class="form-group">
+                <label>Country</label>
+                <div class="inline-form">
+                    <input type="text" id="country_text" placeholder="Enter country">
+                    <button id="country_button">Set</button>
+                </div>
+            </div>
+
+            <!-- Home City -->
+            <div class="form-group">
+                <label>Home City</label>
+                <div class="inline-form">
+                    <input type="text" id="home_city_text" placeholder="Enter home city">
+                    <button id="home_city_button">Set</button>
+                </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-group">
+                <label>Phone Number</label>
+                <div class="inline-form">
+                    <input type="text" id="phone_number_text" placeholder="Enter phone number">
+                    <button id="phone_number_button">Set</button>
+                </div>
+            </div>
+
+            <pre><code>// Standard User Attributes
+const user = braze.getUser();
+
+user.setFirstName("John");
+user.setLastName("Doe");
+user.setEmail("john.doe@example.com");
+user.setGender(braze.User.Genders.MALE);  // MALE, FEMALE, OTHER, UNKNOWN, NOT_APPLICABLE, PREFER_NOT_TO_SAY
+user.setDateOfBirth(1990, 5, 15);         // year, month (1-12), day
+user.setCountry("United States");
+user.setHomeCity("New York");
+user.setPhoneNumber("+1234567890");
+user.setLanguage("en");</code></pre>
+        </div>
+    </div>
+
+    <!-- ============================================
+         SECTION 4: CUSTOM ATTRIBUTES
+         ============================================ -->
+    <div class="section">
+        <h2>4. Custom Attributes</h2>
+        <p>Set custom user attributes for advanced segmentation.</p>
+
+        <button class="toggle-btn" onclick="toggleSection('custom-attrs-section')">Set Custom Attributes</button>
+        <div id="custom-attrs-section" class="collapsible-content">
+            <div class="form-group">
+                <label>Attribute Name</label>
+                <input type="text" id="attribute_name" placeholder="e.g., favorite_color">
+            </div>
+            <div class="form-group">
+                <label>Attribute Value (comma-separated for arrays)</label>
+                <input type="text" id="attribute_value" placeholder="e.g., blue or red,green,blue">
+            </div>
+            <button id="attribute_button">Set Custom Attribute</button>
+
+            <pre><code>// Set custom attributes
+const user = braze.getUser();
+
+// String attribute
+user.setCustomUserAttribute("favorite_color", "blue");
+
+// Number attribute
+user.setCustomUserAttribute("loyalty_points", 500);
+
+// Boolean attribute
+user.setCustomUserAttribute("is_premium_member", true);
+
+// Date attribute
+user.setCustomUserAttribute("last_purchase_date", new Date());
+
+// Array attribute
+user.setCustomUserAttribute("favorite_genres", ["rock", "jazz", "classical"]);
+
+// Add to array
+user.addToCustomAttributeArray("favorite_genres", "blues");
+
+// Remove from array
+user.removeFromCustomAttributeArray("favorite_genres", "rock");
+
+// Increment numeric attribute
+user.incrementCustomUserAttribute("loyalty_points", 50);</code></pre>
+        </div>
+    </div>
+
+    <!-- ============================================
+         SECTION 5: CUSTOM EVENTS
+         ============================================ -->
+    <div class="section">
+        <h2>5. Custom Events</h2>
+        <p>Track user actions and behaviors with custom events.</p>
+
+        <button class="toggle-btn" onclick="toggleSection('custom-events-section')">Log Custom Events</button>
+        <div id="custom-events-section" class="collapsible-content">
+            <div class="form-group">
+                <label>Event Name</label>
+                <input type="text" id="event_name" placeholder="e.g., clicked_button">
+            </div>
+            <div class="form-group">
+                <label>Event Properties (JSON, optional)</label>
+                <input type="text" id="properties" placeholder='e.g., {"button_id": "cta_1"}'>
+            </div>
+            <button id="event_button">Log Event</button>
+
+            <pre><code>// Log a simple event
+braze.logCustomEvent("viewed_product");
+
+// Log event with properties
+braze.logCustomEvent("added_to_cart", {
+    product_id: "SKU123",
+    product_name: "Blue Widget",
+    price: 29.99,
+    quantity: 2,
+    category: "widgets"
+});
+
+// Log event with nested properties
+braze.logCustomEvent("completed_level", {
+    level: 5,
+    score: 1500,
+    time_spent: 120,
+    achievements: ["first_win", "speed_demon"]
+});</code></pre>
+        </div>
+    </div>
+
+    <!-- ============================================
+         SECTION 6: PURCHASES
+         ============================================ -->
+    <div class="section">
+        <h2>6. Purchase Tracking</h2>
+        <p>Track purchases for revenue analytics and segmentation.</p>
+
+        <button class="toggle-btn" onclick="toggleSection('purchases-section')">Log Purchases</button>
+        <div id="purchases-section" class="collapsible-content">
+            <div class="form-group">
+                <label>Product ID</label>
+                <input type="text" id="product_id" placeholder="e.g., SKU123">
+            </div>
+            <div class="form-group">
+                <label>Currency Code</label>
+                <input type="text" id="currency" placeholder="e.g., USD" value="USD">
+            </div>
+            <div class="form-group">
+                <label>Price</label>
+                <input type="number" id="price" placeholder="e.g., 29.99" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" id="quantity" placeholder="e.g., 1" value="1">
+            </div>
+            <button id="log_purchase_button">Log Purchase</button>
+
+            <pre><code>// Log a simple purchase
+braze.logPurchase("product_sku", 29.99, "USD", 1);
+
+// Log purchase with properties
+braze.logPurchase("product_sku", 29.99, "USD", 2, {
+    category: "electronics",
+    brand: "Acme",
+    coupon_code: "SAVE10",
+    is_gift: false
+});</code></pre>
+        </div>
+    </div>
+
+    <!-- ============================================
+         SECTION 7: CONTENT CARDS
+         ============================================ -->
+    <div class="section">
+        <h2>7. Content Cards</h2>
+        <p>Display personalized content cards to users.</p>
+
+        <div style="margin-bottom: 15px;">
+            <button id="toggle">Toggle Cards Feed</button>
+            <button id="hide" class="secondary">Hide Cards</button>
+            <button id="show" class="success">Show Cards</button>
+            <button id="refresh-cards">Refresh Cards</button>
+        </div>
+
+        <div id="content-cards-container">
+            <p style="color: #999; text-align: center;">Content cards will appear here</p>
+        </div>
+
+        <pre><code>// Show content cards in a container
+const container = document.getElementById("content-cards-container");
+braze.showContentCards(container);
+
+// Hide content cards
+braze.hideContentCards();
+
+// Toggle content cards visibility
+braze.toggleContentCards(container);
+
+// Request a refresh of content cards
+braze.requestContentCardsRefresh();
+
+// Subscribe to content card updates
+braze.subscribeToContentCardsUpdates(function(cards) {
+    console.log("Received cards:", cards.cards);
+    console.log("Unviewed count:", cards.getUnviewedCardCount());
+
+    // Process cards manually if needed
+    cards.cards.forEach(function(card) {
+        console.log("Card ID:", card.id);
+        console.log("Card Title:", card.title);
+
+        // Log impression
+        braze.logContentCardImpressions([card]);
+
+        // Log click (call when user clicks)
+        braze.logContentCardClick(card);
+    });
+});
+
+// Dismiss a card
+card.dismissCard();</code></pre>
+    </div>
+
+    <!-- ============================================
+         SECTION 8: IN-APP MESSAGES
+         ============================================ -->
+    <div class="section">
+        <h2>8. In-App Messages</h2>
+        <p>Display and handle in-app messages.</p>
+
+        <pre><code>// Automatically show in-app messages (default behavior)
+braze.automaticallyShowInAppMessages();
+
+// Or manually handle in-app messages
+braze.subscribeToInAppMessage(function(inAppMessage) {
+    // Inspect the message
+    console.log("Received IAM:", inAppMessage);
+
+    // Show it
+    braze.showInAppMessage(inAppMessage);
+
+    // Or defer it for later
+    // braze.deferInAppMessage(inAppMessage);
+
+    // Log impression (automatic if shown via showInAppMessage)
+    braze.logInAppMessageImpression(inAppMessage);
+
+    // Log click
+    braze.logInAppMessageClick(inAppMessage);
+
+    // For messages with buttons
+    if (inAppMessage.buttons && inAppMessage.buttons.length > 0) {
+        inAppMessage.buttons.forEach(function(button, index) {
+            // Log button click
+            braze.logInAppMessageButtonClick(inAppMessage, button);
+        });
+    }
+
+    // Close the message programmatically
+    inAppMessage.closeMessage();
+});
+
+// Subscribe to click events on a message
+inAppMessage.subscribeToClickedEvent(function() {
+    console.log("Message was clicked");
+});
+
+// Subscribe to dismiss events
+inAppMessage.subscribeToDismissedEvent(function() {
+    console.log("Message was dismissed");
+});</code></pre>
+    </div>
+
+    <!-- ============================================
+         SECTION 9: PUSH NOTIFICATIONS
+         ============================================ -->
+    <div class="section">
+        <h2>9. Push Notifications</h2>
+        <p>Enable web push notifications for your users.</p>
+
+        <button id="request-push">Request Push Permission</button>
+        <div id="push-status" class="status-message"></div>
+
+        <div class="note">
+            <strong>Service Worker Required:</strong> Create a <code>service-worker.js</code> file in your root directory with the following content:
+        </div>
+
+        <pre><code>// service-worker.js (place in your web root)
+self.importScripts('https://js.appboycdn.com/web-sdk/5.7/service-worker.js');</code></pre>
+
+        <pre><code>// Check if push is supported
+if (braze.isPushSupported()) {
+    console.log("Push is supported");
+}
+
+// Check if push permission is granted
+braze.isPushPermissionGranted().then(function(isGranted) {
+    console.log("Push permission granted:", isGranted);
+});
+
+// Check if push is blocked
+braze.isPushBlocked().then(function(isBlocked) {
+    console.log("Push is blocked:", isBlocked);
+});
+
+// Request push permission (shows browser prompt)
+braze.requestPushPermission(
+    function() {
+        console.log("Push permission granted!");
+    },
+    function() {
+        console.log("Push permission denied");
+    }
+);
+
+// Unregister from push
+braze.unregisterPush();
+
+// Set push notification subscription type
+const user = braze.getUser();
+user.setPushNotificationSubscriptionType(
+    braze.User.NotificationSubscriptionTypes.OPTED_IN
+    // Options: OPTED_IN, SUBSCRIBED, UNSUBSCRIBED
+);</code></pre>
+    </div>
+
+    <!-- ============================================
+         SECTION 10: FEATURE FLAGS
+         ============================================ -->
+    <div class="section">
+        <h2>10. Feature Flags</h2>
+        <p>Control feature rollouts and A/B tests with feature flags.</p>
+
+        <pre><code>// Refresh feature flags from server
+braze.refreshFeatureFlags();
+
+// Get all feature flags
+const allFlags = braze.getAllFeatureFlags();
+console.log("All feature flags:", allFlags);
+
+// Get a specific feature flag
+const flag = braze.getFeatureFlag("my_feature_flag");
+
+if (flag && flag.enabled) {
+    // Feature is enabled, use its properties
+    const stringProp = flag.getStringProperty("button_text");
+    const numberProp = flag.getNumberProperty("max_items");
+    const boolProp = flag.getBooleanProperty("show_banner");
+    const imageProp = flag.getImageProperty("hero_image");
+    const jsonProp = flag.getJsonProperty("config");
+    const timestampProp = flag.getTimestampProperty("start_date");
+
+    console.log("Feature properties:", {
+        stringProp, numberProp, boolProp, imageProp, jsonProp, timestampProp
+    });
+}
+
+// Log feature flag impression (for analytics)
+braze.logFeatureFlagImpression("my_feature_flag");
+
+// Subscribe to feature flag updates
+braze.subscribeToFeatureFlagsUpdates(function(flags) {
+    console.log("Feature flags updated:", flags);
+});</code></pre>
+    </div>
+
+    <!-- ============================================
+         SECTION 11: DATA MANAGEMENT
+         ============================================ -->
+    <div class="section">
+        <h2>11. Data Management & Utilities</h2>
+        <p>Manage data flushing, SDK state, and debugging.</p>
+
+        <div style="margin-bottom: 15px;">
+            <button id="flush-data">Flush Data Now</button>
+            <button id="toggle-logging" class="secondary">Toggle Logging</button>
+            <button id="get-device-id" class="secondary">Get Device ID</button>
+        </div>
+        <div id="device-id-display" class="status-message"></div>
+
+        <pre><code>// Force immediate data flush to Braze servers
+braze.requestImmediateDataFlush();
+
+// Get the device ID
+braze.getDeviceId(function(deviceId) {
+    console.log("Device ID:", deviceId);
+});
+
+// Enable/disable SDK
+braze.disableSDK();
+braze.enableSDK();
+
+// Check if SDK is disabled
+const isDisabled = braze.isDisabled();
+
+// Check if SDK is initialized
+const isInitialized = braze.isInitialized();
+
+// Toggle console logging (useful for debugging)
+braze.toggleLogging();
+
+// Set a custom logger
+braze.setLogger(function(message) {
+    console.log("[Braze]", message);
+});
+
+// Wipe all user data (use with caution!)
+braze.wipeData();
+
+// Destroy the SDK instance
+braze.destroy();
+
+// Set SDK authentication signature (for SDK Authentication feature)
+braze.setSdkAuthenticationSignature("your_jwt_token");
+
+// Subscribe to SDK authentication failures
+braze.subscribeToSdkAuthenticationFailures(function(event) {
+    console.log("Auth failure:", event);
+    // Refresh the token and set again
+});</code></pre>
+    </div>
+
+    <!-- ============================================
+         SECTION 12: USER ALIASES & SUBSCRIPTIONS
+         ============================================ -->
+    <div class="section">
+        <h2>12. User Aliases & Subscription Groups</h2>
+        <p>Manage user aliases and subscription group membership.</p>
+
+        <pre><code>const user = braze.getUser();
+
+// Add an alias to the user
+user.addAlias("my_alias", "alias_label");
+
+// Add user to a subscription group
+user.addToSubscriptionGroup("subscription_group_id");
+
+// Remove user from a subscription group
+user.removeFromSubscriptionGroup("subscription_group_id");
+
+// Set email notification subscription type
+user.setEmailNotificationSubscriptionType(
+    braze.User.NotificationSubscriptionTypes.OPTED_IN
+    // Options: OPTED_IN, SUBSCRIBED, UNSUBSCRIBED
+);
+
+// Get the user ID (async)
+user.getUserId(function(userId) {
+    console.log("User ID:", userId);
+});</code></pre>
+    </div>
+
+    <!-- ============================================
+         JAVASCRIPT IMPLEMENTATION
+         ============================================ -->
+    <script type="text/javascript">
+        // ============================================
+        // BRAZE SDK ASYNC LOADER
+        // ============================================
+        +function(a,p,P,b,y){
+            a.braze={};
+            a.brazeQueue=[];
+            for(var s="BrazeSdkMetadata DeviceProperties Card Card.prototype.dismissCard Card.prototype.removeAllSubscriptions Card.prototype.removeSubscription Card.prototype.subscribeToClickedEvent Card.prototype.subscribeToDismissedEvent Card.fromContentCardsJson ImageOnly CaptionedImage ClassicCard ControlCard ContentCards ContentCards.prototype.getUnviewedCardCount Feed Feed.prototype.getUnreadCardCount ControlMessage InAppMessage InAppMessage.SlideFrom InAppMessage.ClickAction InAppMessage.DismissType InAppMessage.OpenTarget InAppMessage.ImageStyle InAppMessage.Orientation InAppMessage.TextAlignment InAppMessage.CropType InAppMessage.prototype.closeMessage InAppMessage.prototype.removeAllSubscriptions InAppMessage.prototype.removeSubscription InAppMessage.prototype.subscribeToClickedEvent InAppMessage.prototype.subscribeToDismissedEvent InAppMessage.fromJson FullScreenMessage ModalMessage HtmlMessage SlideUpMessage User User.Genders User.NotificationSubscriptionTypes User.prototype.addAlias User.prototype.addToCustomAttributeArray User.prototype.addToSubscriptionGroup User.prototype.getUserId User.prototype.getUserId User.prototype.incrementCustomUserAttribute User.prototype.removeFromCustomAttributeArray User.prototype.removeFromSubscriptionGroup User.prototype.setCountry User.prototype.setCustomLocationAttribute User.prototype.setCustomUserAttribute User.prototype.setDateOfBirth User.prototype.setEmail User.prototype.setEmailNotificationSubscriptionType User.prototype.setFirstName User.prototype.setGender User.prototype.setHomeCity User.prototype.setLanguage User.prototype.setLastKnownLocation User.prototype.setLastName User.prototype.setPhoneNumber User.prototype.setPushNotificationSubscriptionType User.prototype.setLineId InAppMessageButton InAppMessageButton.prototype.removeAllSubscriptions InAppMessageButton.prototype.removeSubscription InAppMessageButton.prototype.subscribeToClickedEvent FeatureFlag FeatureFlag.prototype.getStringProperty FeatureFlag.prototype.getNumberProperty FeatureFlag.prototype.getBooleanProperty FeatureFlag.prototype.getImageProperty FeatureFlag.prototype.getJsonProperty FeatureFlag.prototype.getTimestampProperty Banner automaticallyShowInAppMessages destroyFeed hideContentCards showContentCards showFeed showInAppMessage deferInAppMessage toggleContentCards toggleFeed changeUser destroy getDeviceId getDeviceId initialize isPushBlocked isPushPermissionGranted isPushSupported logCardClick logCardDismissal logCardImpressions logContentCardImpressions logContentCardClick logCustomEvent logFeedDisplayed logInAppMessageButtonClick logInAppMessageClick logInAppMessageHtmlClick logInAppMessageImpression logPurchase openSession requestPushPermission removeAllSubscriptions removeSubscription requestContentCardsRefresh requestFeedRefresh refreshFeatureFlags requestImmediateDataFlush enableSDK isDisabled setLogger setSdkAuthenticationSignature addSdkMetadata disableSDK subscribeToContentCardsUpdates subscribeToFeedUpdates subscribeToInAppMessage subscribeToSdkAuthenticationFailures toggleLogging unregisterPush wipeData handleBrazeAction subscribeToFeatureFlagsUpdates getAllFeatureFlags logFeatureFlagImpression requestBannersRefresh insertBanner logBannerClick logBannerImpressions getAllBanners subscribeToBannersUpdates isInitialized".split(" "),i=0;i<s.length;i++){
+                for(var m=s[i],k=a.braze,l=m.split("."),j=0;j<l.length-1;j++)k=k[l[j]];
+                k[l[j]]=(new Function("return function "+m.replace(/\./g,"_")+"(){window.brazeQueue.push(arguments); return true}"))()
+            }
+            window.braze.getDeferredInAppMessage=function(){return new window.braze.InAppMessage};
+            window.braze.getCachedContentCards=function(){return new window.braze.ContentCards};
+            window.braze.getCachedFeed=function(){return new window.braze.Feed};
+            window.braze.getUser=function(){return new window.braze.User};
+            window.braze.getFeatureFlag=function(){return new window.braze.FeatureFlag};
+            window.braze.getBanner=function(){return new window.braze.Banner};
+            window.braze.newBannerFromJson=function(){return new window.braze.Banner};
+            (y=p.createElement(P)).type='text/javascript';
+            y.src='https://js.appboycdn.com/web-sdk/5.7/braze.min.js';
+            y.async=1;
+            y.onload = function() {
+                // ============================================
+                // INITIALIZE SDK - Replace with your credentials
+                // ============================================
+                braze.initialize('4f89f38a-d80b-4b78-b95e-c4543c7fecf9', {
+                    baseUrl: "sondheim.braze.com",
+                    allowUserSuppliedJavascript: true,
+                    minimumIntervalBetweenTriggerActionsInSeconds: 0,
+                    enableLogging: true
+                });
+
+                braze.openSession();
+                braze.requestContentCardsRefresh();
+
+                // Subscribe to content cards updates
+                braze.subscribeToContentCardsUpdates(function(cards) {
+                    console.log("Content Cards Updated:", cards);
+                });
+
+                // Setup all event handlers after SDK loads
+                setupEventHandlers();
+            };
+            (b=p.getElementsByTagName(P)[0]).parentNode.insertBefore(y,b);
+        }(window,document,'script');
+
+        // ============================================
+        // UI HELPER FUNCTIONS
+        // ============================================
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const btn = event.target;
+            section.classList.toggle('active');
+            btn.classList.toggle('active');
+        }
+
+        function showStatus(elementId, message, isSuccess) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = 'status-message ' + (isSuccess ? 'success' : 'error');
+            setTimeout(() => { el.style.display = 'none'; }, 3000);
+        }
+
+        // ============================================
+        // EVENT HANDLERS SETUP
+        // ============================================
+        function setupEventHandlers() {
+            // Content Cards
+            const toggle = document.getElementById("toggle");
+            const hide = document.getElementById("hide");
+            const show = document.getElementById("show");
+            const refreshCards = document.getElementById("refresh-cards");
+            const feed = document.getElementById("content-cards-container");
+
+            toggle.onclick = function() { braze.toggleContentCards(feed); };
+            hide.onclick = function() { braze.hideContentCards(); };
+            show.onclick = function() { braze.showContentCards(feed); };
+            refreshCards.onclick = function() { braze.requestContentCardsRefresh(); };
+
+            // Change User
+            document.getElementById("change_user_button").addEventListener("click", function() {
+                const userId = document.getElementById("change_user_text").value;
+                if (userId) {
+                    braze.changeUser(userId);
+                    showStatus('user-id-status', 'User changed to: ' + userId, true);
+                    console.log('User changed to:', userId);
+                }
+            });
+
+            // Enter key support for user ID
+            document.getElementById("change_user_text").addEventListener("keyup", function(e) {
+                if (e.keyCode === 13) document.getElementById("change_user_button").click();
+            });
+
+            // First Name
+            document.getElementById("fn_button").addEventListener("click", function() {
+                const value = document.getElementById("fn_text").value;
+                if (value) braze.getUser().setFirstName(value);
+            });
+
+            // Last Name
+            document.getElementById("ln_button").addEventListener("click", function() {
+                const value = document.getElementById("ln_text").value;
+                if (value) braze.getUser().setLastName(value);
+            });
+
+            // Email
+            document.getElementById("email_button").addEventListener("click", function() {
+                const value = document.getElementById("email_text").value;
+                if (value) braze.getUser().setEmail(value);
+            });
+
+            // Gender
+            document.getElementById("gender_button").addEventListener("click", function() {
+                const select = document.getElementById("gender");
+                const value = select.options[select.selectedIndex].value;
+                const genderMap = {
+                    'male': braze.User.Genders.MALE,
+                    'female': braze.User.Genders.FEMALE,
+                    'other': braze.User.Genders.OTHER,
+                    'unknown': braze.User.Genders.UNKNOWN,
+                    'not_applicable': braze.User.Genders.NOT_APPLICABLE,
+                    'prefer_not_to_say': braze.User.Genders.PREFER_NOT_TO_SAY
+                };
+                braze.getUser().setGender(genderMap[value]);
+            });
+
+            // Birthday
+            document.getElementById("birthday_button").addEventListener("click", function() {
+                const value = document.getElementById("birthday").value;
+                if (value) {
+                    const year = parseInt(value.substring(0, 4));
+                    const month = parseInt(value.substring(5, 7));
+                    const day = parseInt(value.substring(8, 10));
+                    braze.getUser().setDateOfBirth(year, month, day);
+                }
+            });
+
+            // Country
+            document.getElementById("country_button").addEventListener("click", function() {
+                const value = document.getElementById("country_text").value;
+                if (value) braze.getUser().setCountry(value);
+            });
+
+            // Home City
+            document.getElementById("home_city_button").addEventListener("click", function() {
+                const value = document.getElementById("home_city_text").value;
+                if (value) braze.getUser().setHomeCity(value);
+            });
+
+            // Phone Number
+            document.getElementById("phone_number_button").addEventListener("click", function() {
+                const value = document.getElementById("phone_number_text").value;
+                if (value) braze.getUser().setPhoneNumber(value);
+            });
+
+            // Custom Attributes
+            document.getElementById("attribute_button").addEventListener("click", function() {
+                const name = document.getElementById("attribute_name").value;
+                const value = document.getElementById("attribute_value").value;
+                if (name && value) {
+                    // Check if value contains commas (array)
+                    if (value.includes(',')) {
+                        const array = value.split(',').map(s => s.trim());
+                        braze.getUser().setCustomUserAttribute(name, array);
+                    } else {
+                        braze.getUser().setCustomUserAttribute(name, value);
+                    }
+                }
+            });
+
+            // Custom Events
+            document.getElementById("event_button").addEventListener("click", function() {
+                const eventName = document.getElementById("event_name").value;
+                const propsStr = document.getElementById("properties").value;
+
+                if (eventName) {
+                    if (propsStr) {
+                        try {
+                            const props = JSON.parse(propsStr);
+                            braze.logCustomEvent(eventName, props);
+                        } catch (e) {
+                            // If not valid JSON, use as simple property
+                            braze.logCustomEvent(eventName, { value: propsStr });
+                        }
+                    } else {
+                        braze.logCustomEvent(eventName);
+                    }
+                }
+            });
+
+            // Purchases
+            document.getElementById("log_purchase_button").addEventListener("click", function() {
+                const productId = document.getElementById("product_id").value;
+                const currency = document.getElementById("currency").value || "USD";
+                const price = parseFloat(document.getElementById("price").value);
+                const quantity = parseInt(document.getElementById("quantity").value) || 1;
+
+                if (productId && price) {
+                    braze.logPurchase(productId, price, currency, quantity);
+                }
+            });
+
+            // Push Notifications
+            document.getElementById("request-push").addEventListener("click", function() {
+                if (braze.isPushSupported()) {
+                    braze.requestPushPermission(
+                        function() {
+                            showStatus('push-status', 'Push permission granted!', true);
+                        },
+                        function() {
+                            showStatus('push-status', 'Push permission denied', false);
+                        }
+                    );
+                } else {
+                    showStatus('push-status', 'Push not supported in this browser', false);
+                }
+            });
+
+            // Data Management
+            document.getElementById("flush-data").addEventListener("click", function() {
+                braze.requestImmediateDataFlush();
+                alert("Data flush requested");
+            });
+
+            document.getElementById("toggle-logging").addEventListener("click", function() {
+                braze.toggleLogging();
+                alert("Logging toggled - check console");
+            });
+
+            document.getElementById("get-device-id").addEventListener("click", function() {
+                braze.getDeviceId(function(deviceId) {
+                    showStatus('device-id-display', 'Device ID: ' + deviceId, true);
+                });
+            });
+        }
+
+        // ============================================
+        // URL-BASED USER IDENTIFICATION
+        // ============================================
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedUserId = urlParams.get("id");
+            if (encodedUserId) {
+                try {
+                    const decodedUserId = atob(encodedUserId);
+                    console.log("Decoded User ID from URL:", decodedUserId);
+                    // Wait for SDK to be ready
+                    setTimeout(function() {
+                        braze.changeUser(decodedUserId);
+                    }, 1000);
+                } catch (e) {
+                    console.error("Error decoding user ID:", e);
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

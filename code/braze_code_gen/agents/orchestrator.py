@@ -6,8 +6,10 @@ the ChatInterface for compatibility with the reference agent framework.
 
 import logging
 from typing import List, Dict, Optional, Generator, Any
+from threading import Event
 
 from langchain_openai import ChatOpenAI
+from langchain_core.callbacks.base import BaseCallbackHandler
 from opik.integrations.langchain import OpikTracer
 
 from braze_code_gen.core.state import CodeGenerationState, create_initial_state
@@ -182,7 +184,9 @@ class Orchestrator:
         self,
         user_message: str,
         website_url: Optional[str] = None,
-        max_refinement_iterations: int = 3
+        max_refinement_iterations: int = 3,
+        callbacks: Optional[List[BaseCallbackHandler]] = None,
+        stop_event: Optional[Event] = None
     ) -> Generator[Dict[str, Any], None, None]:
         """Generate landing page with streaming updates.
 
@@ -193,6 +197,8 @@ class Orchestrator:
             user_message: User's feature request
             website_url: Optional customer website URL for branding
             max_refinement_iterations: Maximum refinement attempts
+            callbacks: Optional LangChain callbacks for token streaming
+            stop_event: Optional threading.Event for cancellation signaling
 
         Yields:
             dict: Update dictionaries:
@@ -220,11 +226,28 @@ class Orchestrator:
 
         # Stream workflow updates
         config = {}
+
+        # Combine all callbacks (tracer + user-provided callbacks)
+        all_callbacks = []
         if self.tracer:
-            config["callbacks"] = [self.tracer]
+            all_callbacks.append(self.tracer)
+        if callbacks:
+            all_callbacks.extend(callbacks)
+
+        if all_callbacks:
+            config["callbacks"] = all_callbacks
 
         final_state = None
         for update in self.workflow.stream_workflow(state, config=config):
+            # Check for cancellation via threading.Event (UI-agnostic)
+            if stop_event and stop_event.is_set():
+                logger.info("Generation cancelled by user via stop_event")
+                yield {
+                    "type": "cancelled",
+                    "message": "Generation cancelled by user"
+                }
+                return
+
             yield update
 
             # Track final state

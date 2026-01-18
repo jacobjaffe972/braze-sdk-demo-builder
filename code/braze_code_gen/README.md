@@ -64,7 +64,7 @@ Router (Tests passed?)
 - **LLMs**: Multi-provider support (OpenAI, Anthropic, Google)
   - Primary tier: GPT-4o / Claude Opus / Gemini 2.0 Flash
   - Research/Validation tier: GPT-4o-mini / Claude Sonnet / Gemini 2.0 Flash
-- **UI**: Gradio (web interface with streaming)
+- **UI**: Streamlit (modern web interface with token streaming)
 - **Validation**: Playwright (headless browser testing)
 - **Documentation**: Braze Docs MCP server (cached JSON)
 - **Observability**: Opik tracing
@@ -88,12 +88,13 @@ braze_code_gen/
 │   ├── mcp_integration.py    # Braze docs access
 │   ├── website_analyzer.py   # Branding extraction
 │   └── browser_testing.py    # Playwright tests
-├── ui/              # Gradio interface
-│   └── gradio_app.py
+├── ui/              # Streamlit web interface
+│   ├── streamlit_app.py       # Modern Streamlit UI with token streaming
+│   ├── streamlit_callbacks.py # LangChain callbacks for streaming
+│   └── streamlit_styles.css   # Custom Braze CSS
 ├── utils/           # Helper functions
 │   ├── html_template.py
 │   ├── exporter.py
-│   ├── sdk_suggestions.py
 │   └── debug.py
 ├── prompts/         # System prompts
 │   └── BRAZE_PROMPTS.py
@@ -164,16 +165,37 @@ braze_code_gen/
 
 ### Launch the UI
 
-```bash
-# From repository root
-./launch_ui.sh
+#### Streamlit UI (New - Recommended)
 
-# Or with Python
+```bash
+# Option 1: Using launch script
+./launch_streamlit.sh
+
+# Option 2: Direct streamlit command
+streamlit run code/braze_code_gen/ui/streamlit_app.py
+
+# Option 3: Custom port
+streamlit run code/braze_code_gen/ui/streamlit_app.py --server.port 8080
+```
+
+Then open http://localhost:7860 in your browser.
+
+**New Features in Streamlit UI:**
+- ✨ **Token-level streaming**: Watch agents think in real-time
+- ⏹ **Stop button**: Cancel generation mid-stream
+- 🧠 **Agent sidebar**: See which agent is working with Braze branding
+- 🎨 **Enhanced UI**: Modern Streamlit interface with custom theming
+
+```bash
+# Option 1: Using launch script
+./launch_streamlit.sh
+
+# Option 2: Python module
 cd code
 python -m braze_code_gen
 ```
 
-Then open http://localhost:7860 in your browser.
+Then open http://localhost:8501 in your browser.
 
 ### Command Line Options
 
@@ -202,7 +224,7 @@ python -m braze_code_gen --export-dir /path/to/exports
 
 1. **Configure API** (Section 1):
    - Enter Braze API key
-   - Enter REST endpoint
+   - Enter SDK endpoint
    - Click "Validate & Continue"
 
 2. **Generate Page** (Section 2):
@@ -214,49 +236,6 @@ python -m braze_code_gen --export-dir /path/to/exports
    - View live preview in iframe
    - Check extracted branding data
    - Download HTML file
-
-### Programmatic Usage
-
-```python
-from braze_code_gen.agents.orchestrator import Orchestrator
-from braze_code_gen.core.models import BrazeAPIConfig
-
-# Initialize orchestrator
-orchestrator = Orchestrator(
-    braze_api_config=BrazeAPIConfig(
-        api_key="your_api_key_here",
-        rest_endpoint="https://rest.iad-01.braze.com",
-        validated=True
-    ),
-    enable_browser_testing=True,
-    export_dir="/tmp/braze_exports"
-)
-
-# Generate landing page
-result = orchestrator.generate(
-    user_message="Create a landing page with push notifications and user tracking for https://nike.com",
-    website_url="https://nike.com",
-    max_refinement_iterations=3
-)
-
-# Get export path
-export_path = result["export_file_path"]
-print(f"Generated: {export_path}")
-```
-
-### Streaming Usage
-
-```python
-# Stream real-time updates
-for update in orchestrator.generate_streaming(
-    user_message="Create push notification demo",
-    website_url="https://nike.com"
-):
-    if update["type"] == "node_complete":
-        print(update["status"])
-    elif update["type"] == "error":
-        print(f"Error: {update['message']}")
-```
 
 ---
 
@@ -400,7 +379,7 @@ Orchestrator(
     braze_api_config=BrazeAPIConfig(...),  # API credentials
     enable_browser_testing=True,            # Playwright validation
     export_dir="/tmp/braze_exports",        # Output directory
-    opik_project_name="braze-generator"    # Tracing project
+    opik_project_name="braze-generator"    # Tracing project w/ Opik
 )
 ```
 
@@ -461,7 +440,6 @@ pytest tests/test_agents.py -v -k "initialization"
 - **Unit Tests**: Individual agent functionality
 - **Integration Tests**: Workflow orchestration and routing
 - **E2E Tests**: Full pipeline with mocked LLMs
-- **UI Tests**: Gradio interface and streaming
 
 ---
 
