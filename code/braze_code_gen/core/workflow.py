@@ -55,13 +55,13 @@ class BrazeCodeGeneratorWorkflow:
         # Create workflow
         workflow = StateGraph(CodeGenerationState)
 
-        # Add nodes for each agent
-        workflow.add_node("planning", self._planning_node)
-        workflow.add_node("research", self._research_node)
-        workflow.add_node("code_generation", self._code_generation_node)
-        workflow.add_node("validation", self._validation_node)
-        workflow.add_node("refinement", self._refinement_node)
-        workflow.add_node("finalization", self._finalization_node)
+        # Add nodes for each agent (using lambdas to ensure RunnableConfig is properly passed)
+        workflow.add_node("planning", lambda state, config: self.planning_agent.process(state, config))
+        workflow.add_node("research", lambda state, config: self.research_agent.process(state, config))
+        workflow.add_node("code_generation", lambda state, config: self.code_generation_agent.process(state, config))
+        workflow.add_node("validation", lambda state, config: self.validation_agent.process(state, config))
+        workflow.add_node("refinement", lambda state, config: self.refinement_agent.process(state, config))
+        workflow.add_node("finalization", lambda state, config: self.finalization_agent.process(state, config))
 
         # Linear edges for main flow
         workflow.add_edge(START, "planning")
@@ -86,38 +86,6 @@ class BrazeCodeGeneratorWorkflow:
         workflow.add_edge("finalization", END)
 
         return workflow.compile()
-
-    # Node wrapper functions
-
-    def _planning_node(self, state: CodeGenerationState) -> Dict[str, Any]:
-        """Planning agent node - feature planning and branding extraction."""
-        logger.info("Executing planning agent node")
-        return self.planning_agent.process(state)
-
-    def _research_node(self, state: CodeGenerationState) -> Dict[str, Any]:
-        """Research agent node - Braze documentation research."""
-        logger.info("Executing research agent node")
-        return self.research_agent.process(state)
-
-    def _code_generation_node(self, state: CodeGenerationState) -> Dict[str, Any]:
-        """Code generation agent node - HTML/CSS/JS generation."""
-        logger.info("Executing code generation agent node")
-        return self.code_generation_agent.process(state)
-
-    def _validation_node(self, state: CodeGenerationState) -> Dict[str, Any]:
-        """Validation agent node - browser testing."""
-        logger.info("Executing validation agent node")
-        return self.validation_agent.process(state)
-
-    def _refinement_node(self, state: CodeGenerationState) -> Dict[str, Any]:
-        """Refinement agent node - fix validation issues."""
-        logger.info("Executing refinement agent node")
-        return self.refinement_agent.process(state)
-
-    def _finalization_node(self, state: CodeGenerationState) -> Dict[str, Any]:
-        """Finalization agent node - polish and export."""
-        logger.info("Executing finalization agent node")
-        return self.finalization_agent.process(state)
 
     # Router function
 
@@ -194,10 +162,17 @@ class BrazeCodeGeneratorWorkflow:
                 node_name = list(chunk.keys())[0]
                 node_output = chunk[node_name]
 
+                # NEW: Yield node_start event BEFORE processing
+                yield {
+                    "type": "node_start",
+                    "node": node_name,
+                    "status": f"Starting {node_name}..."
+                }
+
                 # Store the latest state
                 final_state = node_output
 
-                # Yield status update
+                # Yield status update (existing)
                 yield {
                     "type": "node_complete",
                     "node": node_name,

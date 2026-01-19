@@ -102,14 +102,15 @@ The Braze SDK Landing Page Generator is a sophisticated **multi-agent system** t
 
 ```bash
 # From repository root
-./launch_ui.sh
-
-# Or manually
 cd code
 python -m braze_code_gen
+
+# Or directly with Streamlit
+cd code
+streamlit run braze_code_gen/ui/streamlit_app.py
 ```
 
-Then open **http://localhost:8501** in your browser.
+Then open **http://localhost:7860** in your browser.
 
 ### Command Line Options
 
@@ -205,8 +206,6 @@ code-gen-agent/
 ├── .env.example              # Environment template
 ├── .gitignore                # Ignore patterns
 ├── README.md                 # This file
-├── launch_ui.sh              # Launch script
-├── restart_ui.sh             # Restart script
 │
 ├── braze-docs-mcp/           # MCP server for Braze documentation
 │   ├── server.py             # MCP implementation

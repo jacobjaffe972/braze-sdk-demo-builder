@@ -6,6 +6,7 @@ with real-time token-level streaming updates and cancellation support.
 
 import os
 import logging
+import base64
 from pathlib import Path
 from typing import Optional
 
@@ -20,18 +21,25 @@ from braze_code_gen.core.models import BrazeAPIConfig
 
 logger = logging.getLogger(__name__)
 
-# Page configuration
+# Page configuration with dark theme
 st.set_page_config(
     page_title="Braze Landing Page Generator",
     page_icon="🎨",
     layout="centered",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
 )
 
 # Load custom CSS
 CSS_PATH = Path(__file__).parent / "streamlit_styles.css"
 if CSS_PATH.exists():
-    st.html(f"<style>{CSS_PATH.read_text()}</style>")
+    st.markdown(f"<style>{CSS_PATH.read_text()}</style>", unsafe_allow_html=True)
+else:
+    st.error(f"CSS file not found at {CSS_PATH}")
 
 # ============================================
 # Session State Initialization
@@ -80,6 +88,14 @@ def init_session_state():
     if "current_agent" not in st.session_state:
         st.session_state.current_agent = ""
 
+    # Token-level streaming state (NEW)
+    if "current_node_name" not in st.session_state:
+        st.session_state.current_node_name = None
+    if "node_thinking_text" not in st.session_state:
+        st.session_state.node_thinking_text = {}  # {node_name: accumulated_tokens}
+    if "node_start_times" not in st.session_state:
+        st.session_state.node_start_times = {}  # Track when each node started
+
 # Initialize on app load
 init_session_state()
 
@@ -89,42 +105,52 @@ init_session_state()
 
 @st.fragment(run_every=0.1 if st.session_state.streaming_active else None)
 def agent_output_fragment():
-    """Auto-updating fragment for real-time agent thinking display."""
+    """Simplified sidebar for current agent status."""
 
-    if st.session_state.agent_output or st.session_state.streaming_active:
+    if st.session_state.streaming_active:
         # Header with Braze logo
         st.html("""
         <div class="agent-sidebar-header">
             <div class="braze-logo-small"></div>
-            <span>Agent Thinking</span>
+            <span>Active Agent</span>
         </div>
         """)
 
-        # Agent name
+        # Current agent name
         if st.session_state.current_agent:
-            st.caption(f"🤖 Current Agent: {st.session_state.current_agent}")
+            st.caption(f"🤖 {st.session_state.current_agent}")
 
-        # Token stream output
-        if st.session_state.agent_output:
-            st.markdown(st.session_state.agent_output)
+        # Thinking spinner
+        st.html('<div class="thinking-spinner"></div>')
 
-        # Thinking spinner if actively streaming
-        if st.session_state.streaming_active:
-            st.html('<div class="thinking-spinner"></div>')
     elif st.session_state.get("agent_output") == "":
-        st.caption("Agent output will appear here during generation")
+        st.caption("Agent will activate during generation...")
 
 # Call fragment in sidebar context
 with st.sidebar:
     agent_output_fragment()
 
-# Braze header
-st.html("""
-<div class="braze-header">
-    <div class="braze-logo"></div>
-    <span class="braze-title">Landing Page Generator</span>
-</div>
-""")
+# Main container wrapper
+st.markdown('<div class="main-container">', unsafe_allow_html=True)
+
+# Load and encode the Braze logo
+logo_path = Path(__file__).parent / "assets" / "braze-logo.webp"
+if logo_path.exists():
+    with open(logo_path, "rb") as f:
+        logo_data = base64.b64encode(f.read()).decode()
+    logo_html = f'<img src="data:image/webp;base64,{logo_data}" alt="Braze" class="braze-logo-large">'
+else:
+    # Fallback if logo not found
+    logo_html = '<div class="braze-logo-large" style="background: #ea580c; border-radius: 50%;"></div>'
+
+# New Chat-Based UI header with Braze logo
+st.markdown(f"""
+    <div class="braze-main-header">
+        {logo_html}
+        <h1 class="gradient-heading">Generate Braze SDK Demos</h1>
+        <p class="gradient-subheading">Explain what you want to build then let our agents do the rest.</p>
+    </div>
+""", unsafe_allow_html=True)
 
 # ============================================
 # Config Panel
@@ -209,7 +235,7 @@ with st.container():
 
     with col1:
         generate = st.button(
-            "🚀 Generate Landing Page",
+            "Generate Landing Page",
             type="primary",
             use_container_width=True,
             disabled=st.session_state.streaming_active or not st.session_state.api_config,
@@ -228,25 +254,64 @@ with st.container():
 # ============================================
 # Status Panel (during generation)
 # ============================================
+# Generation Progress with Token Streaming
+# ============================================
 
-if st.session_state.node_states:
-    with st.container():
-        st.html('<div class="status-card-header">⚙️ Generation Progress</div>')
+@st.fragment(run_every=0.1 if st.session_state.streaming_active else None)
+def progress_display_fragment():
+    """Auto-updating fragment for real-time progress with token streaming."""
 
-        # Display node states in order
-        for node_name, node_data in st.session_state.node_states.items():
-            status = node_data.get("status", "pending")
-            message = node_data.get("message", node_name)
+    if st.session_state.node_states:
+        with st.container():
+            st.html('<div class="status-card-header">⚙️ Generation Progress</div>')
 
-            if status == "running":
-                with st.spinner(message):
-                    st.write("")  # Placeholder
-            elif status == "success":
-                st.success(f"✓ {message}")
-            elif status == "error":
-                st.error(f"✗ {message}")
-            else:
-                st.info(f"⋯ {message}")
+            # Define node order for consistent display
+            node_order = ["planning", "research", "code_generation", "validation", "refinement", "finalization"]
+
+            for node_name in node_order:
+                if node_name not in st.session_state.node_states:
+                    continue
+
+                node_data = st.session_state.node_states[node_name]
+                status = node_data.get("status", "pending")
+                message = node_data.get("message", node_name)
+
+                # Determine if this is the currently active node
+                is_active = (st.session_state.current_node_name == node_name and
+                           st.session_state.streaming_active)
+
+                if status == "running" or is_active:
+                    # ACTIVE NODE - Show spinner + token stream
+                    with st.container():
+                        # Spinner with node name
+                        st.html(f'''
+                        <div class="node-active-container">
+                            <div class="thinking-spinner"></div>
+                            <span class="node-active-text">⚙️ {message}</span>
+                        </div>
+                        ''')
+
+                        # Token stream display (expandable)
+                        thinking_text = st.session_state.node_thinking_text.get(node_name, "")
+                        if thinking_text:
+                            with st.expander("🧠 Agent Thinking (Live)", expanded=True):
+                                st.markdown(f'<div class="thinking-container">{thinking_text}</div>',
+                                          unsafe_allow_html=True)
+
+                elif status == "success":
+                    # COMPLETED NODE - Green checkmark
+                    st.success(f"✓ {message}")
+
+                elif status == "error":
+                    # ERROR NODE - Red X
+                    st.error(f"✗ {message}")
+
+                else:
+                    # PENDING NODE - Grey info
+                    st.info(f"⋯ {message}")
+
+# Render the fragment
+progress_display_fragment()
 
 # ============================================
 # Results Panel (after completion)
@@ -256,10 +321,11 @@ if st.session_state.generation_complete:
     with st.container():
         st.html('<div class="success-card-header">✅ Generation Complete</div>')
 
-        col1, col2 = st.columns(2)
+        col1 = st.columns(1)[0]  # Single column for download button only
 
         with col1:
             if st.session_state.export_path and Path(st.session_state.export_path).exists():
+                st.markdown('<div class="download-button">', unsafe_allow_html=True)
                 with open(st.session_state.export_path, "rb") as f:
                     st.download_button(
                         label="📥 Download HTML",
@@ -269,18 +335,9 @@ if st.session_state.generation_complete:
                         type="primary",
                         use_container_width=True
                     )
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.error("Export file not found")
-
-        with col2:
-            show_branding = st.button(
-                "🎨 View Branding Data",
-                use_container_width=True
-            )
-
-        # Show branding JSON if button clicked
-        if show_branding and st.session_state.branding_data:
-            st.json(st.session_state.branding_data)
 
 # ============================================
 # Generation Handler
@@ -309,6 +366,12 @@ if generate:
         # Status container for dynamic updates
         status_container = st.empty()
 
+        # Create a placeholder for token streaming display
+        token_stream_placeholder = st.empty()
+
+        # Counter for periodic UI updates during token streaming
+        token_update_counter = 0
+
         try:
             # Stream from orchestrator (pass stop_event for UI-agnostic cancellation)
             for update in st.session_state.orchestrator.generate_streaming(
@@ -319,7 +382,23 @@ if generate:
             ):
                 update_type = update.get("type")
 
-                if update_type == "node_complete":
+                if update_type == "node_start":
+                    # Node starting - set as current active node (NEW)
+                    node_name = update.get("node", "Unknown")
+                    st.session_state.current_node_name = node_name
+                    st.session_state.node_thinking_text[node_name] = ""  # Initialize empty
+
+                    # Mark as running in node_states
+                    st.session_state.node_states[node_name] = {
+                        "status": "running",
+                        "message": f"{node_name} in progress..."
+                    }
+
+                    # Update token stream display placeholder
+                    with token_stream_placeholder.container():
+                        st.info(f"🧠 {node_name} starting...")
+
+                elif update_type == "node_complete":
                     # Node completed - update state
                     node_name = update.get("node", "Unknown")
                     status_msg = update.get("status", "")
@@ -327,6 +406,18 @@ if generate:
                         "status": "success",
                         "message": status_msg if status_msg else f"{node_name} completed"
                     }
+
+                    # Display final tokens for this node before clearing
+                    thinking_text = st.session_state.node_thinking_text.get(node_name, "")
+                    if thinking_text:
+                        with token_stream_placeholder.container():
+                            with st.expander(f"✓ {node_name} - Final Output ({len(thinking_text)} chars)", expanded=False):
+                                st.markdown(f'<div class="thinking-container">{thinking_text[:500]}...</div>',
+                                          unsafe_allow_html=True)
+
+                    # Clear current node tracking (node is done - NEW)
+                    if st.session_state.current_node_name == node_name:
+                        st.session_state.current_node_name = None
 
                     # Update status display
                     with status_container.container():
@@ -372,3 +463,6 @@ if stop:
     st.session_state.streaming_active = False
     st.info("Cancellation requested...")
     st.rerun()
+
+# Close main container
+st.markdown('</div>', unsafe_allow_html=True)

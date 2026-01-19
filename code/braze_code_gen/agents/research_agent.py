@@ -7,6 +7,7 @@ import logging
 from typing import List
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.runnables.config import RunnableConfig
 
 from braze_code_gen.core.llm_factory import create_llm
 from braze_code_gen.core.models import ResearchResult, BrazeDocumentation, ModelTier
@@ -41,11 +42,12 @@ class ResearchAgent:
             tools=BRAZE_DOCS_TOOLS
         )
 
-    def process(self, state: CodeGenerationState) -> dict:
+    def process(self, state: CodeGenerationState, config: RunnableConfig) -> dict:
         """Research Braze documentation for feature implementation.
 
         Args:
             state: Current workflow state
+            config: Optional LangGraph config with callbacks for streaming
 
         Returns:
             dict: State updates with research results
@@ -77,29 +79,66 @@ For each feature, find:
 
         # Run ReAct agent
         try:
+            # Merge user config with recursion limit for research agent
+            research_config = {**(config or {})}
+            # Increase recursion limit for research agent (needs more steps for doc search)
+            # Using 35 as a balance between thoroughness and speed
+            research_config["recursion_limit"] = 35
+
+            # Pass config to agent invoke for token streaming callbacks
             result = self.agent.invoke({
                 "messages": [
                     SystemMessage(content=RESEARCH_AGENT_PROMPT),
                     HumanMessage(content=research_query)
                 ]
-            })
+            }, config=research_config)
 
             # Extract research findings from messages
+            total_messages = len(result["messages"])
+            logger.info(f"Research agent completed in {total_messages} message exchanges")
+
             final_message = result["messages"][-1]
             if isinstance(final_message, AIMessage):
-                research_summary = final_message.content
+                content = final_message.content
+                # Handle both string and list content formats
+                if isinstance(content, list):
+                    # Extract text from list of content blocks (e.g., [{'type': 'text', 'text': '...'}])
+                    text_parts = []
+                    for block in content:
+                        if isinstance(block, dict) and 'text' in block:
+                            text_parts.append(block['text'])
+                        elif isinstance(block, str):
+                            text_parts.append(block)
+                    research_summary = '\n'.join(text_parts)
+                else:
+                    research_summary = str(content)
             else:
                 research_summary = str(final_message)
 
             logger.info(f"Research completed: {len(research_summary)} chars")
 
             # Create research result
-            research_result = ResearchResult(
-                query=research_query,
-                documentation_pages=[],  # Pages were already processed by tools
-                summary=research_summary,
-                implementation_guidance=self._extract_implementation_guidance(research_summary)
-            )
+            try:
+                implementation_guidance = self._extract_implementation_guidance(research_summary)
+                logger.debug(f"Implementation guidance created: {len(implementation_guidance)} chars")
+            except Exception as e:
+                logger.error(f"Error extracting implementation guidance: {e}")
+                implementation_guidance = research_summary  # Fallback
+
+            try:
+                research_result = ResearchResult(
+                    query=research_query,
+                    documentation_pages=[],  # Pages were already processed by tools
+                    summary=research_summary,
+                    implementation_guidance=implementation_guidance
+                )
+                logger.debug("ResearchResult object created successfully")
+            except Exception as e:
+                logger.error(f"Error creating ResearchResult: {e}")
+                logger.error(f"query type: {type(research_query)}, value: {research_query}")
+                logger.error(f"summary type: {type(research_summary)}, value: {research_summary[:100]}")
+                logger.error(f"guidance type: {type(implementation_guidance)}")
+                raise
 
             return {
                 "research_results": research_result,
@@ -107,7 +146,7 @@ For each feature, find:
             }
 
         except Exception as e:
-            logger.error(f"Error during research: {e}")
+            logger.error(f"Error during research: {e}", exc_info=True)
             return {
                 "error": f"Research failed: {str(e)}",
                 "next_step": "code_generation"  # Continue anyway with basic guidance
@@ -123,14 +162,35 @@ For each feature, find:
             str: Formatted feature list
         """
         lines = []
-        for i, feature in enumerate(feature_plan.features, 1):
-            lines.append(f"{i}. **{feature.name}**: {feature.description}")
-            lines.append(f"   SDK Methods: {', '.join(feature.sdk_methods)}")
-            if feature.implementation_notes:
-                lines.append(f"   Notes: {feature.implementation_notes}")
-            lines.append("")
+        try:
+            for i, feature in enumerate(feature_plan.features, 1):
+                lines.append(f"{i}. **{feature.name}**: {feature.description}")
 
-        return "\n".join(lines)
+                # Flatten sdk_methods in case of nested lists or mixed types
+                methods = feature.sdk_methods
+                if methods:
+                    # Recursively flatten any nested structures
+                    flattened = []
+                    for item in methods:
+                        if isinstance(item, list):
+                            # Nested list - flatten it
+                            for subitem in item:
+                                flattened.append(str(subitem))
+                        else:
+                            flattened.append(str(item))
+                    methods = flattened
+
+                lines.append(f"   SDK Methods: {', '.join(methods) if methods else 'None'}")
+                if feature.implementation_notes:
+                    lines.append(f"   Notes: {feature.implementation_notes}")
+                lines.append("")
+
+            return "\n".join(lines)
+        except Exception as e:
+            logger.error(f"Error formatting feature plan: {e}")
+            logger.error(f"Feature plan data: {feature_plan}")
+            # Return a simple string representation as fallback
+            return str(feature_plan)
 
     def _extract_implementation_guidance(self, research_summary: str) -> str:
         """Extract implementation guidance from research summary.

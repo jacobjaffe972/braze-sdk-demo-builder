@@ -6,11 +6,13 @@ This agent generates complete landing pages with customer branding.
 import logging
 
 from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.runnables.config import RunnableConfig
 
 from braze_code_gen.core.llm_factory import create_llm
 from braze_code_gen.core.models import GeneratedCode, ModelTier
 from braze_code_gen.core.state import CodeGenerationState
 from braze_code_gen.utils.html_template import generate_base_template
+from braze_code_gen.utils.html_utils import clean_html_response
 from braze_code_gen.prompts.BRAZE_PROMPTS import CODE_GENERATION_AGENT_PROMPT
 from braze_code_gen.prompts.sdk_reference import SDK_REFERENCE_EXAMPLES
 
@@ -33,11 +35,15 @@ class CodeGenerationAgent:
         """
         self.llm = create_llm(tier=model_tier, temperature=temperature)
 
-    def process(self, state: CodeGenerationState) -> dict:
+    def process(self, state: CodeGenerationState, config: RunnableConfig) -> dict:
         """Generate complete HTML landing page with Braze SDK.
+
+        Uses modern JavaScript component architecture to create sleek,
+        dynamic landing pages with proper SDK integration.
 
         Args:
             state: Current workflow state
+            config: Optional LangGraph config with callbacks for streaming
 
         Returns:
             dict: State updates with generated code
@@ -90,11 +96,12 @@ class CodeGenerationAgent:
                 HumanMessage(content=f"Generate the complete HTML landing page.\n\nBase template:\n{base_template}")
             ]
 
-            response = self.llm.invoke(messages)
+            # Pass config to LLM invoke for token streaming callbacks
+            response = self.llm.invoke(messages, config=config)
             html_content = response.content
 
             # Clean up response (remove markdown code blocks if present)
-            html_content = self._clean_html_response(html_content)
+            html_content = clean_html_response(html_content)
 
             logger.info(f"Generated HTML: {len(html_content)} characters")
 
@@ -141,33 +148,3 @@ class CodeGenerationAgent:
 
         return "\n".join(lines)
 
-    def _clean_html_response(self, html_content: str) -> str:
-        """Clean HTML response from LLM.
-
-        Args:
-            html_content: Raw HTML from LLM
-
-        Returns:
-            str: Cleaned HTML
-        """
-        # Remove markdown code blocks
-        if "```html" in html_content:
-            html_content = html_content.split("```html")[1]
-            if "```" in html_content:
-                html_content = html_content.split("```")[0]
-
-        elif "```" in html_content:
-            # Generic code block
-            parts = html_content.split("```")
-            if len(parts) >= 2:
-                html_content = parts[1]
-
-        # Strip whitespace
-        html_content = html_content.strip()
-
-        # Ensure starts with DOCTYPE
-        if not html_content.upper().startswith("<!DOCTYPE"):
-            if html_content.upper().startswith("<HTML"):
-                html_content = "<!DOCTYPE html>\n" + html_content
-
-        return html_content

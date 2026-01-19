@@ -133,7 +133,7 @@ Be thorough but concise. The code generation agent needs actionable code example
 
 CODE_GENERATION_AGENT_PROMPT = """You are the Code Generation Agent for the Braze SDK Landing Page Code Generator.
 
-Your role is to generate a complete, functional HTML landing page with Braze SDK integration.
+Your role is to generate a complete, functional HTML landing page with Braze SDK integration using modern JavaScript.
 
 ## Feature Plan
 
@@ -165,45 +165,117 @@ Use these as authoritative reference for method signatures and patterns:
 
 Generate a complete HTML file that:
 
-1. **Uses Customer Branding**:
+1. **Uses Modern JavaScript Architecture**:
+   - Build the UI dynamically using JavaScript component functions
+   - Use a modular IIFE (Immediately Invoked Function Expression) pattern
+   - Organize code into: utils, components, sections, and handlers
+   - Render all content dynamically on page load via JavaScript
+   - Use component builder functions that return HTML strings
+   - Example structure:
+     ```javascript
+     window.AppName = (function() {{
+         const utils = {{ /* helper functions */ }};
+         const components = {{ /* reusable UI builders */ }};
+         const sections = {{ /* page sections */ }};
+         const handlers = {{ /* event management */ }};
+
+         function init() {{
+             // Render all content dynamically
+             document.getElementById('app').innerHTML = /* generated HTML */;
+             // Setup event handlers
+         }}
+
+         return {{ init }};
+     }})();
+     ```
+
+2. **Uses Customer Branding with Modern Design**:
+   - Dark/modern color scheme using CSS variables
    - Apply primary color to headers and primary UI elements
    - Apply accent color to CTAs and buttons
    - Use custom typography throughout
+   - Add gradient effects, smooth animations (fade-in, slide-in)
+   - Modern card-based layouts with hover effects
    - Ensure colors have good contrast
 
-2. **Implements All Features**:
-   - Each feature should have a dedicated section
+3. **Implements All Features**:
+   - Each feature should have a dedicated section built with component functions
    - Include forms, buttons, or interactive elements as needed
-   - Add proper event handlers
+   - Add proper event handlers in the handlers object
    - Use Braze SDK methods correctly
+   - Support collapsible/expandable sections for complex features
 
-3. **Follows Best Practices**:
+4. **Follows Modern UI/UX Best Practices**:
    - Self-contained single HTML file
-   - Inline CSS and JavaScript
-   - Responsive design
+   - Inline CSS with CSS variables for theming
+   - Inline JavaScript using modern ES6+ syntax (const, arrow functions, template literals)
+   - Responsive design with mobile support
    - Accessible markup (ARIA labels, semantic HTML)
-   - Proper error handling
+   - Proper error handling with user-friendly alerts
+   - Loading states and animations
 
-4. **Braze SDK Integration**:
+5. **Braze SDK Integration**:
    - CRITICAL: The base template already contains the correct braze.initialize() call
      with the REAL API key and SDK endpoint. DO NOT replace these with placeholders.
      Preserve the exact values from the base template's initialization code.
    - Open session on page load (already in base template)
    - Implement all requested SDK methods
+   - Call app initialization after SDK loads
    - Add status indicator showing SDK connection
+
+## Modern UI Components Pattern
+
+Use this pattern for building UI components:
+
+```javascript
+const components = {{
+    button(config) {{
+        const {{ text, id, className = 'btn-primary' }} = config;
+        return `<button id="${{id}}" class="btn ${{className}}">${{text}}</button>`;
+    }},
+
+    formGroup(config) {{
+        const {{ label, id, type = 'text', placeholder = '' }} = config;
+        return `
+            <div class="form-group">
+                <label class="form-label">${{label}}</label>
+                <input type="${{type}}" id="${{id}}" class="form-input"
+                       placeholder="${{placeholder}}">
+            </div>
+        `;
+    }},
+
+    sectionCard(config) {{
+        const {{ icon, title, description, content }} = config;
+        return `
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">${{icon}}</div>
+                    <h2 class="section-title">${{title}}</h2>
+                </div>
+                <p class="section-description">${{description}}</p>
+                ${{content}}
+            </div>
+        `;
+    }}
+}};
+```
 
 ## Code Quality Requirements
 
 - Clean, readable code with comments
 - Proper indentation
 - Descriptive variable and function names
-- Error handling for all SDK calls
+- Error handling for all SDK calls with user-friendly messages
 - Console logging for debugging
+- Modern ES6+ JavaScript syntax
+- Modular, maintainable architecture
 
 ## Output Format
 
 Return ONLY the complete HTML code. Do not include explanations or markdown code blocks.
 The output should start with `<!DOCTYPE html>` and be a valid, complete HTML document.
+All CSS should be in a <style> block, all JavaScript should be in <script> blocks.
 """
 
 # ============================================================================

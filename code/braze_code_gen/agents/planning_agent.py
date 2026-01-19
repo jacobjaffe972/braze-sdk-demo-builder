@@ -8,6 +8,7 @@ import logging
 from typing import Optional, Dict
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.runnables.config import RunnableConfig
 
 from braze_code_gen.core.llm_factory import create_llm
 from braze_code_gen.core.models import (
@@ -40,11 +41,12 @@ class PlanningAgent:
         self.llm = create_llm(tier=model_tier, temperature=temperature)
         self.website_analyzer = WebsiteAnalyzer()
 
-    def process(self, state: CodeGenerationState) -> dict:
+    def process(self, state: CodeGenerationState, config: RunnableConfig) -> dict:
         """Process user input to create feature plan with branding.
 
         Args:
             state: Current workflow state
+            config: Optional LangGraph config with callbacks for streaming
 
         Returns:
             dict: State updates with feature plan and branding data
@@ -95,7 +97,8 @@ class PlanningAgent:
         feature_plan = self._create_feature_plan(
             user_message,
             customer_website_url,
-            branding_data
+            branding_data,
+            config=config
         )
 
         logger.info(f"Created feature plan with {len(feature_plan.features)} features")
@@ -140,7 +143,8 @@ class PlanningAgent:
         self,
         user_request: str,
         customer_website_url: Optional[str],
-        branding_data: Optional[BrandingData]
+        branding_data: Optional[BrandingData],
+        config: RunnableConfig
     ) -> SDKFeaturePlan:
         """Create feature plan using LLM.
 
@@ -148,6 +152,7 @@ class PlanningAgent:
             user_request: User's feature request
             customer_website_url: Customer website URL
             branding_data: Extracted branding data
+            config: Optional LangGraph config with callbacks for streaming
 
         Returns:
             SDKFeaturePlan: Feature plan
@@ -181,7 +186,8 @@ class PlanningAgent:
 
         try:
             # Use structured output (Pydantic model)
-            response = self.llm.with_structured_output(SDKFeaturePlan).invoke(messages)
+            # Pass config to LLM invoke for token streaming callbacks
+            response = self.llm.with_structured_output(SDKFeaturePlan).invoke(messages, config=config)
             return response
 
         except Exception as e:

@@ -127,6 +127,7 @@ class LLMFactory:
             model=model,
             temperature=temperature,
             openai_api_key=self.config.openai_api_key,
+            streaming=True,  # Enable token-level streaming
             **kwargs
         )
 
@@ -150,6 +151,7 @@ class LLMFactory:
             model=model,
             temperature=temperature,
             anthropic_api_key=self.config.anthropic_api_key,
+            streaming=True,  # Enable token-level streaming
             **kwargs
         )
 
@@ -173,6 +175,7 @@ class LLMFactory:
             model=model,
             temperature=temperature,
             google_api_key=self.config.google_api_key,
+            streaming=True,  # Enable token-level streaming
             **kwargs
         )
 

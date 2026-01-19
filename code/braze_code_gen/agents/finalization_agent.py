@@ -6,11 +6,13 @@ This agent adds final polish and exports the landing page to HTML.
 import logging
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.runnables.config import RunnableConfig
 
 from braze_code_gen.core.llm_factory import create_llm
 from braze_code_gen.core.models import GeneratedCode, ModelTier
 from braze_code_gen.core.state import CodeGenerationState, mark_complete
 from braze_code_gen.utils.exporter import HTMLExporter
+from braze_code_gen.utils.html_utils import clean_html_response
 from braze_code_gen.prompts.BRAZE_PROMPTS import FINALIZATION_AGENT_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -35,11 +37,12 @@ class FinalizationAgent:
         self.llm = create_llm(tier=model_tier, temperature=temperature)
         self.exporter = HTMLExporter(export_dir=export_dir)
 
-    def process(self, state: CodeGenerationState) -> dict:
+    def process(self, state: CodeGenerationState, config: RunnableConfig) -> dict:
         """Finalize and export landing page.
 
         Args:
             state: Current workflow state
+            config: Optional LangGraph config with callbacks for streaming
 
         Returns:
             dict: State updates with export path and completion
@@ -62,7 +65,8 @@ class FinalizationAgent:
         # Polish the code
         polished_html = self._polish_code(
             generated_code,
-            validation_report
+            validation_report,
+            config=config
         )
 
         # Export to file
@@ -105,13 +109,15 @@ class FinalizationAgent:
     def _polish_code(
         self,
         generated_code: GeneratedCode,
-        validation_report
+        validation_report,
+        config: RunnableConfig
     ) -> str:
         """Polish the generated code.
 
         Args:
             generated_code: GeneratedCode
             validation_report: ValidationReport (optional)
+            config: Optional LangGraph config with callbacks for streaming
 
         Returns:
             str: Polished HTML
@@ -140,11 +146,12 @@ Braze SDK initialized: {generated_code.braze_sdk_initialized}
                 HumanMessage(content=f"Polish this HTML for production:\n\n{generated_code.html}")
             ]
 
-            response = self.llm.invoke(messages)
+            # Pass config to LLM invoke for token streaming callbacks
+            response = self.llm.invoke(messages, config=config)
             polished_html = response.content
 
             # Clean up response
-            polished_html = self._clean_html_response(polished_html)
+            polished_html = clean_html_response(polished_html)
 
             logger.info(f"Polished HTML: {len(polished_html)} characters")
 
@@ -155,35 +162,6 @@ Braze SDK initialized: {generated_code.braze_sdk_initialized}
             # Return original if polishing fails
             return generated_code.html
 
-    def _clean_html_response(self, html_content: str) -> str:
-        """Clean HTML response from LLM.
-
-        Args:
-            html_content: Raw HTML from LLM
-
-        Returns:
-            str: Cleaned HTML
-        """
-        # Remove markdown code blocks
-        if "```html" in html_content:
-            html_content = html_content.split("```html")[1]
-            if "```" in html_content:
-                html_content = html_content.split("```")[0]
-
-        elif "```" in html_content:
-            parts = html_content.split("```")
-            if len(parts) >= 2:
-                html_content = parts[1]
-
-        # Strip whitespace
-        html_content = html_content.strip()
-
-        # Ensure starts with DOCTYPE
-        if not html_content.upper().startswith("<!DOCTYPE"):
-            if html_content.upper().startswith("<HTML"):
-                html_content = "<!DOCTYPE html>\n" + html_content
-
-        return html_content
 
     def _create_success_message(
         self,

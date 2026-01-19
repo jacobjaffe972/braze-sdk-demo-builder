@@ -6,6 +6,7 @@ This agent validates generated HTML using Playwright.
 import logging
 
 from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.runnables.config import RunnableConfig
 
 from braze_code_gen.core.llm_factory import create_llm
 from braze_code_gen.core.models import ModelTier
@@ -45,11 +46,12 @@ class ValidationAgent:
         else:
             self.browser_tester = None
 
-    def process(self, state: CodeGenerationState) -> dict:
+    def process(self, state: CodeGenerationState, config: RunnableConfig) -> dict:
         """Validate generated code with browser testing.
 
         Args:
             state: Current workflow state
+            config: Optional LangGraph config with callbacks for streaming
 
         Returns:
             dict: State updates with validation results
@@ -102,7 +104,8 @@ class ValidationAgent:
         # Analyze validation report with LLM
         decision = self._analyze_validation_report(
             generated_code,
-            validation_report
+            validation_report,
+            config=config
         )
 
         # Determine next step
@@ -130,13 +133,15 @@ class ValidationAgent:
     def _analyze_validation_report(
         self,
         generated_code,
-        validation_report
+        validation_report,
+        config: RunnableConfig
     ) -> dict:
         """Analyze validation report with LLM.
 
         Args:
             generated_code: GeneratedCode
             validation_report: ValidationReport
+            config: Optional LangGraph config with callbacks for streaming
 
         Returns:
             dict: Decision with 'passed' boolean and reasoning
@@ -163,7 +168,8 @@ Braze SDK initialized: {generated_code.braze_sdk_initialized}
                 HumanMessage(content="Analyze the validation report and determine if the code passes validation.")
             ]
 
-            response = self.llm.invoke(messages)
+            # Pass config to LLM invoke for token streaming callbacks
+            response = self.llm.invoke(messages, config=config)
             decision_text = response.content.upper()
 
             # Determine pass/fail

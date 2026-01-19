@@ -42,6 +42,12 @@ class StreamlitTokenCallbackHandler(BaseCallbackHandler):
         agent_name = kwargs.get("tags", ["Unknown Agent"])[0] if "tags" in kwargs else "Agent"
         st.session_state.current_agent = agent_name
 
+        # NEW: Track current node for inline display
+        if st.session_state.current_node_name:
+            # Initialize thinking text for this node if not exists
+            if st.session_state.current_node_name not in st.session_state.node_thinking_text:
+                st.session_state.node_thinking_text[st.session_state.current_node_name] = ""
+
         logger.info(f"LLM started for {agent_name}")
 
     def on_llm_new_token(self, token: str, **kwargs: Any) -> None:
@@ -58,10 +64,11 @@ class StreamlitTokenCallbackHandler(BaseCallbackHandler):
 
         # Accumulate tokens
         self.text += token
-        st.session_state.agent_output = self.text
+        st.session_state.agent_output = self.text  # Keep for sidebar compatibility
 
-        # Fragment will auto-update display
-        logger.debug(f"Token received: {token[:20]}...")
+        # Also accumulate for current node's inline display
+        if st.session_state.current_node_name:
+            st.session_state.node_thinking_text[st.session_state.current_node_name] += token
 
     def on_llm_end(self, response: Any, **kwargs: Any) -> None:
         """Called when LLM finishes generating.

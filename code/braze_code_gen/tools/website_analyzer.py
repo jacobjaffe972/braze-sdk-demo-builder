@@ -10,6 +10,7 @@ import logging
 from typing import Optional, Dict, List, Tuple
 from collections import Counter
 from urllib.parse import urljoin, urlparse
+import urllib3
 
 import requests
 from bs4 import BeautifulSoup
@@ -29,6 +30,9 @@ logger = logging.getLogger(__name__)
 
 # Suppress cssutils warnings
 cssutils.log.setLevel(logging.CRITICAL)
+
+# Suppress SSL warnings when verification is disabled
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class WebsiteAnalyzer:
@@ -91,9 +95,25 @@ class WebsiteAnalyzer:
         # Extract typography
         typography = self._extract_typography(soup, html_content, url)
 
-        # Determine if extraction was successful
-        extraction_success = colors is not None and typography is not None
+        # Determine if extraction was successful (at least one extraction succeeded)
+        extraction_success = colors is not None or typography is not None
         fallback_used = not extraction_success
+
+        # Build extraction notes
+        extracted_items = []
+        if colors is not None:
+            extracted_items.append("colors")
+        if typography is not None:
+            extracted_items.append("typography")
+
+        if extracted_items:
+            extraction_notes = f"Successfully extracted {', '.join(extracted_items)}"
+            if colors is None:
+                extraction_notes += " (using default colors)"
+            elif typography is None:
+                extraction_notes += " (using default typography)"
+        else:
+            extraction_notes = "Used default Braze branding (extraction failed)"
 
         # Use defaults if extraction failed
         if colors is None:
@@ -107,12 +127,11 @@ class WebsiteAnalyzer:
             typography=typography,
             extraction_success=extraction_success,
             fallback_used=fallback_used,
-            extraction_notes="Successfully extracted branding" if extraction_success
-                           else "Used default Braze branding (extraction failed)"
+            extraction_notes=extraction_notes
         )
 
     def _fetch_website(self, url: str) -> Optional[str]:
-        """Fetch website HTML with retry logic.
+        """Fetch website HTML with retry logic and SSL fallback.
 
         Args:
             url: Website URL
@@ -120,6 +139,8 @@ class WebsiteAnalyzer:
         Returns:
             Optional[str]: HTML content or None if failed
         """
+        ssl_error_occurred = False
+
         for attempt in range(self.max_retries):
             user_agent = self.user_agents[attempt % len(self.user_agents)]
             headers = {'User-Agent': user_agent}
@@ -129,15 +150,39 @@ class WebsiteAnalyzer:
                     url,
                     headers=headers,
                     timeout=self.timeout,
-                    allow_redirects=True
+                    allow_redirects=True,
+                    verify=True
                 )
                 response.raise_for_status()
                 return response.text
 
+            except requests.exceptions.SSLError as e:
+                ssl_error_occurred = True
+                logger.warning(f"SSL certificate verification failed for {url}: {str(e)}")
+
             except requests.Timeout:
-                logger.warning(f"Timeout fetching {url} (attempt {attempt + 1})")
+                logger.warning(f"Timeout fetching {url} (attempt {attempt + 1}/{self.max_retries})")
+
             except requests.RequestException as e:
-                logger.warning(f"Error fetching {url}: {str(e)} (attempt {attempt + 1})")
+                logger.warning(f"Error fetching {url}: {str(e)} (attempt {attempt + 1}/{self.max_retries})")
+
+        # If SSL error occurred, retry once without verification
+        if ssl_error_occurred:
+            logger.info(f"Retrying {url} with SSL verification disabled")
+            try:
+                response = requests.get(
+                    url,
+                    headers={'User-Agent': self.user_agents[0]},
+                    timeout=self.timeout,
+                    allow_redirects=True,
+                    verify=False  # Disable SSL verification as fallback
+                )
+                response.raise_for_status()
+                logger.info(f"Successfully fetched {url} with SSL verification disabled")
+                return response.text
+
+            except requests.RequestException as e:
+                logger.warning(f"Failed to fetch {url} even with SSL verification disabled: {str(e)}")
 
         return None
 
@@ -408,7 +453,7 @@ class WebsiteAnalyzer:
         return font_family
 
     def _fetch_css(self, url: str) -> Optional[str]:
-        """Fetch CSS file content.
+        """Fetch CSS file content with SSL fallback.
 
         Args:
             url: CSS file URL
@@ -420,10 +465,24 @@ class WebsiteAnalyzer:
             response = requests.get(
                 url,
                 headers={'User-Agent': self.user_agents[0]},
-                timeout=5
+                timeout=5,
+                verify=True
             )
             response.raise_for_status()
             return response.text
+        except requests.exceptions.SSLError:
+            # Retry with SSL verification disabled
+            try:
+                response = requests.get(
+                    url,
+                    headers={'User-Agent': self.user_agents[0]},
+                    timeout=5,
+                    verify=False
+                )
+                response.raise_for_status()
+                return response.text
+            except requests.RequestException:
+                return None
         except requests.RequestException:
             return None
 
