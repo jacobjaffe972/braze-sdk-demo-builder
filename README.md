@@ -207,10 +207,8 @@ code-gen-agent/
 ├── .gitignore                # Ignore patterns
 ├── README.md                 # This file
 │
-├── braze-docs-mcp/           # MCP server for Braze documentation
-│   ├── server.py             # MCP implementation
-│   ├── requirements.txt      # MCP dependencies
-│   └── braze_docs_cache.json # Cached docs (50+ pages)
+├── braze-docs-mcp/           # Legacy custom MCP server (deprecated)
+│   └── ...                   # Replaced by official Braze MCP server
 │
 ├── code/                     # Main application
 │   ├── requirements.txt      # Python dependencies
@@ -251,10 +249,10 @@ User Input (features + website URL)
     └─ Map features to Braze SDK methods
     ↓
 [2] Research Agent
-    ├─ Search Braze Docs MCP (50+ cached pages)
-    ├─ Find SDK implementation guidance
-    ├─ Extract code examples
-    └─ Collect best practices
+    ├─ Search official Braze MCP server (comprehensive docs)
+    ├─ Use semantic search for better relevance
+    ├─ Extract code examples with context
+    └─ Get setup checklists and best practices
     ↓
 [3] Code Generation Agent
     ├─ Generate HTML/CSS/JS with customer branding
@@ -291,7 +289,7 @@ User downloads generated landing page
 - **LLMs**: Multi-provider (OpenAI, Anthropic, Google) via LangChain
 - **UI**: Streamlit with streaming support
 - **Validation**: Playwright (headless browser testing)
-- **Documentation**: Braze Docs MCP server (cached)
+- **Documentation**: Official Braze MCP server (semantic search)
 - **Observability**: Opik tracing
 - **Web Scraping**: BeautifulSoup4, cssutils
 - **Data Validation**: Pydantic 2.x

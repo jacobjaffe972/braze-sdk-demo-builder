@@ -95,18 +95,44 @@ Your role is to research Braze documentation to find implementation guidance for
 
 ## Your Task
 
-For each feature in the plan:
-1. Search Braze documentation for relevant pages
-2. Extract code examples
-3. Identify best practices
-4. Compile implementation guidance
+For each feature in the plan, use a two-step approach:
+
+**Step 1: Search & Understand**
+- Use `search_braze_docs()` with specific method names or feature keywords
+- Read through documentation snippets to understand the feature
+- Identify the key SDK methods and their parameters
+
+**Step 2: Get Implementation Code**
+- Use `get_braze_code_examples()` with relevant topic keywords
+- Extract working code examples for the code generation agent
+- Note any prerequisites or setup requirements
+
+**Example Research Flow:**
+For "User Identification" feature using `braze.changeUser(userId)`:
+1. Search: `search_braze_docs("changeUser method user identification")`
+2. Get examples: `get_braze_code_examples("user_tracking")` or `get_braze_code_examples("initialization")`
+3. Compile findings into structured guidance
 
 ## Tools Available
 
-You have access to:
-- `search_braze_docs(query)`: Search Braze documentation
-- `get_braze_code_examples(topic)`: Get code examples for a topic
-- `list_braze_doc_pages()`: List available documentation pages
+You have access to the official Braze MCP server tools:
+- `search_braze_docs(query)`: Search Braze documentation with semantic search
+  - Use specific queries like "changeUser method" or "track custom events"
+  - Returns comprehensive documentation with URLs and snippets
+  - Better than keyword matching - understands intent
+
+- `get_braze_code_examples(topic)`: Get working code examples for Web SDK
+  - Topics: "initialization", "user_tracking", "push_notifications", etc.
+  - Returns JavaScript/TypeScript examples with explanations
+  - Use AFTER searching docs to get actual implementation code
+
+- `get_braze_event_schema(event_key)`: Get JSON schema for Braze events
+  - Event keys: "custom_event", "purchase", "user_attribute"
+  - Returns structure, required fields, and data types
+
+- `get_braze_setup_checklist(environment)`: Get SDK integration checklist
+  - Environments: "dev", "staging", "prod"
+  - Returns step-by-step setup instructions
 
 ## Focus Areas
 
@@ -171,6 +197,8 @@ Generate a complete HTML file that:
    - Organize code into: utils, components, sections, and handlers
    - Render all content dynamically on page load via JavaScript
    - Use component builder functions that return HTML strings
+   -Do not use any third party libraries or frameworks
+   -Do not add in console alert functions
    - Example structure:
      ```javascript
      window.AppName = (function() {{

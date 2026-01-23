@@ -1,292 +1,163 @@
 """MCP integration for Braze documentation access.
 
-This module wraps the Braze Docs MCP server and provides LangChain tool interfaces.
+This module provides LangChain tool interfaces for the official Braze MCP server.
+The official server provides comprehensive Braze SDK documentation with semantic
+search and structured code examples.
 """
 
-import json
 import logging
-import subprocess
-from typing import List, Optional, Annotated
+from typing import Annotated
 
 from langchain_core.tools import tool
-
-from braze_code_gen.core.models import BrazeDocumentation
 
 logger = logging.getLogger(__name__)
 
 
-class BrazeDocsMCP:
-    """Wrapper for Braze Documentation MCP server."""
-
-    def __init__(
-        self,
-        server_path: str = "/Users/Jacob.Jaffe/code-gen-agent/braze-docs-mcp",
-        cache_file: str = "braze_docs_cache.json"
-    ):
-        """Initialize Braze Docs MCP wrapper.
-
-        Args:
-            server_path: Path to MCP server directory
-            cache_file: Name of cache file
-        """
-        self.server_path = server_path
-        self.cache_file = f"{server_path}/{cache_file}"
-        self.docs_cache = self._load_cache()
-        logger.info(f"Loaded {len(self.docs_cache)} Braze documentation pages")
-
-    def _load_cache(self) -> dict:
-        """Load documentation cache from JSON file.
-
-        Returns:
-            dict: Documentation cache
-        """
-        try:
-            with open(self.cache_file, 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            logger.warning(f"Cache file not found: {self.cache_file}")
-            return {}
-        except json.JSONDecodeError as e:
-            logger.error(f"Error parsing cache file: {e}")
-            return {}
-
-    def search_documentation(
-        self,
-        query: str,
-        max_results: int = 5
-    ) -> List[BrazeDocumentation]:
-        """Search Braze documentation for relevant pages.
-
-        Args:
-            query: Search query
-            max_results: Maximum number of results
-
-        Returns:
-            List[BrazeDocumentation]: Relevant documentation pages
-
-        Example:
-            >>> mcp = BrazeDocsMCP()
-            >>> results = mcp.search_documentation("Web SDK initialization")
-            >>> for doc in results:
-            ...     print(doc.page_title)
-        """
-        query_lower = query.lower()
-        results = []
-
-        for page_path, page_data in self.docs_cache.items():
-            title = page_data.get('title', '').lower()
-            content = page_data.get('content', '').lower()
-
-            # Calculate relevance score
-            relevance = 0.0
-            if query_lower in title:
-                relevance += 0.5
-            if query_lower in content:
-                relevance += 0.3
-            # Boost by occurrence count
-            relevance += min(content.count(query_lower) * 0.1, 0.2)
-
-            if relevance > 0:
-                doc = BrazeDocumentation(
-                    page_title=page_data.get('title', ''),
-                    page_url=page_data.get('url', ''),
-                    content=page_data.get('content', '')[:3000],  # Limit content
-                    code_examples=page_data.get('code_examples', [])[:5],
-                    relevance_score=min(relevance, 1.0)
-                )
-                results.append((relevance, doc))
-
-        # Sort by relevance and return top results
-        results.sort(key=lambda x: x[0], reverse=True)
-        return [doc for _, doc in results[:max_results]]
-
-    def get_page(self, page_path: str) -> Optional[BrazeDocumentation]:
-        """Get specific documentation page by path.
-
-        Args:
-            page_path: Page path (e.g., "developer_guide/platform_integration_guides/web/initial_sdk_setup")
-
-        Returns:
-            Optional[BrazeDocumentation]: Documentation page or None
-        """
-        # Try exact match
-        page_data = self.docs_cache.get(page_path)
-
-        # Try with/without trailing slash
-        if not page_data:
-            page_data = self.docs_cache.get(page_path.rstrip('/'))
-        if not page_data:
-            page_data = self.docs_cache.get(page_path + '/')
-
-        if not page_data:
-            logger.warning(f"Page not found: {page_path}")
-            return None
-
-        return BrazeDocumentation(
-            page_title=page_data.get('title', ''),
-            page_url=page_data.get('url', ''),
-            content=page_data.get('content', ''),
-            code_examples=page_data.get('code_examples', []),
-            relevance_score=1.0
-        )
-
-    def list_pages(self, limit: int = 50) -> List[str]:
-        """List available documentation pages.
-
-        Args:
-            limit: Maximum number of pages to return
-
-        Returns:
-            List[str]: List of page paths
-        """
-        return list(self.docs_cache.keys())[:limit]
-
-    def get_code_examples(self, topic: str) -> List[str]:
-        """Get code examples related to a topic.
-
-        Args:
-            topic: Topic to search for
-
-        Returns:
-            List[str]: Code examples
-        """
-        docs = self.search_documentation(topic, max_results=3)
-        examples = []
-        for doc in docs:
-            examples.extend(doc.code_examples)
-        return examples[:10]  # Return up to 10 examples
-
-
 # ============================================================================
-# LangChain Tool Wrappers
+# Official Braze MCP Server Tools
 # ============================================================================
-
-# Global MCP instance (initialized on first use)
-_mcp_instance: Optional[BrazeDocsMCP] = None
-
-
-def get_mcp_instance() -> BrazeDocsMCP:
-    """Get or create global MCP instance.
-
-    Returns:
-        BrazeDocsMCP: MCP instance
-    """
-    global _mcp_instance
-    if _mcp_instance is None:
-        _mcp_instance = BrazeDocsMCP()
-    return _mcp_instance
 
 
 @tool
 def search_braze_docs(
     query: Annotated[str, "Search query for Braze documentation"]
 ) -> str:
-    """Search Braze documentation for relevant information.
+    """Search Braze documentation using the official Braze MCP server.
 
-    Use this tool to find Braze SDK documentation, API references,
-    integration guides, and code examples.
+    This tool provides comprehensive search across all Braze SDK documentation,
+    API references, integration guides, and code examples. Uses semantic search
+    for better relevance than simple keyword matching.
+
+    When to use this tool:
+    - Finding documentation about specific Braze SDK methods
+    - Learning about SDK features and capabilities
+    - Discovering integration patterns and best practices
+    - Getting overview information before diving into code examples
 
     Examples:
-    - "Web SDK initialization"
-    - "track custom events JavaScript"
-    - "user attributes API"
-    - "push notifications Web SDK"
+    - "changeUser method for user identification"
+    - "track custom events"
+    - "set user attributes"
+    - "push notification permissions Web SDK"
+    - "initialize Braze Web SDK"
 
     Args:
-        query: What to search for in Braze docs
+        query: What to search for in Braze docs. Be specific but not overly verbose.
 
     Returns:
-        str: Relevant documentation pages and code examples
+        str: Relevant documentation content with page titles, URLs, and snippets
     """
-    mcp = get_mcp_instance()
-    results = mcp.search_documentation(query, max_results=3)
-
-    if not results:
-        return f"No Braze documentation found for query: '{query}'"
-
-    # Format results
-    output = [f"Found {len(results)} relevant Braze documentation pages:\n"]
-
-    for i, doc in enumerate(results, 1):
-        output.append(f"\n## {i}. {doc.page_title}")
-        output.append(f"**URL**: {doc.page_url}")
-        output.append(f"**Relevance**: {doc.relevance_score:.2f}\n")
-
-        # Add content snippet
-        content_preview = doc.content[:500] + "..." if len(doc.content) > 500 else doc.content
-        output.append(f"**Content**:\n{content_preview}\n")
-
-        # Add code examples
-        if doc.code_examples:
-            output.append(f"**Code Examples** ({len(doc.code_examples)} found):")
-            for j, example in enumerate(doc.code_examples[:2], 1):
-                output.append(f"\n### Example {j}:")
-                output.append(f"```javascript\n{example}\n```")
-
-    return "\n".join(output)
+    try:
+        from braze_code_gen.tools.mcp_client import run_mcp_search
+        result = run_mcp_search(query, limit=5)
+        return result
+    except Exception as e:
+        logger.error(f"Error searching Braze docs: {e}", exc_info=True)
+        return f"Error searching documentation: {str(e)}"
 
 
 @tool
 def get_braze_code_examples(
-    topic: Annotated[str, "Topic to get code examples for"]
+    topic: Annotated[str, "Topic or feature to get code examples for"]
 ) -> str:
-    """Get Braze SDK code examples for a specific topic.
+    """Get Braze SDK code examples from the official documentation.
 
-    Use this tool when you need specific code examples for implementing
-    Braze SDK features.
+    This tool retrieves working code examples for specific Braze SDK features.
+    Returns JavaScript/TypeScript examples for the Web SDK by default.
 
-    Examples:
-    - "initialize Web SDK"
-    - "log custom event"
-    - "set user attributes"
-    - "request push permission"
+    When to use this tool:
+    - After finding relevant docs, get actual code to implement
+    - Learning syntax for specific SDK methods
+    - Understanding how to use SDK features in practice
+    - Getting implementation patterns for common use cases
+
+    Topic examples:
+    - "initialization" - SDK initialization code
+    - "user_tracking" - Event tracking examples
+    - "push_notifications" - Push notification setup
+    - "user_attributes" - Setting user attributes
+    - "custom_events" - Logging custom events
+    - "content_cards" - Content card implementation
 
     Args:
-        topic: Topic to get code examples for
+        topic: The Braze SDK feature or topic to get examples for.
+               Use concise keywords that describe the feature.
 
     Returns:
-        str: Code examples from Braze documentation
+        str: Code examples with explanations from Braze documentation
     """
-    mcp = get_mcp_instance()
-    examples = mcp.get_code_examples(topic)
-
-    if not examples:
-        return f"No code examples found for topic: '{topic}'"
-
-    output = [f"Found {len(examples)} code examples for '{topic}':\n"]
-
-    for i, example in enumerate(examples, 1):
-        output.append(f"\n### Example {i}:")
-        output.append(f"```javascript\n{example}\n```\n")
-
-    return "\n".join(output)
+    try:
+        from braze_code_gen.tools.mcp_client import run_mcp_get_examples
+        result = run_mcp_get_examples(
+            topic=topic,
+            language="javascript",
+            sdk="web",
+            limit=5
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error getting code examples: {e}", exc_info=True)
+        return f"Error getting code examples: {str(e)}"
 
 
 @tool
-def list_braze_doc_pages() -> str:
-    """List available Braze documentation pages.
+def get_braze_event_schema(
+    event_key: Annotated[str, "Event type identifier (e.g., 'custom_event', 'purchase', 'user_attribute')"]
+) -> str:
+    """Get JSON schema for a Braze event type.
 
-    Use this tool to see what documentation is available in the cache.
+    Returns the expected structure, required fields, and data types for
+    sending events to Braze. Useful for ensuring correct API payloads.
+
+    Event keys:
+    - "custom_event" - Schema for custom event tracking
+    - "purchase" - Schema for purchase events
+    - "user_attribute" - Schema for user attributes
+    - "push_token" - Schema for push token registration
+
+    Args:
+        event_key: The type of Braze event to get schema for
 
     Returns:
-        str: List of available documentation pages
+        str: JSON schema with field descriptions and examples
     """
-    mcp = get_mcp_instance()
-    pages = mcp.list_pages(limit=30)
+    try:
+        from braze_code_gen.tools.mcp_client import run_mcp_get_event_schema
+        result = run_mcp_get_event_schema(event_key)
+        return result
+    except Exception as e:
+        logger.error(f"Error getting event schema: {e}", exc_info=True)
+        return f"Error getting event schema: {str(e)}"
 
-    if not pages:
-        return "No documentation pages available"
 
-    output = [f"Available Braze documentation pages ({len(pages)} shown):\n"]
-    for i, page in enumerate(pages, 1):
-        output.append(f"{i}. {page}")
+@tool
+def get_braze_setup_checklist(
+    environment: Annotated[str, "Target environment: 'dev', 'staging', or 'prod'"] = "dev"
+) -> str:
+    """Get a structured setup checklist for Braze SDK integration.
 
-    return "\n".join(output)
+    Returns step-by-step instructions for integrating the Braze SDK,
+    including prerequisites, configuration steps, and verification.
+
+    Args:
+        environment: Target deployment environment (default: 'dev')
+
+    Returns:
+        str: Structured checklist with setup steps and time estimates
+    """
+    try:
+        from braze_code_gen.tools.mcp_client import run_mcp_get_setup_checklist
+        result = run_mcp_get_setup_checklist(environment)
+        return result
+    except Exception as e:
+        logger.error(f"Error getting setup checklist: {e}", exc_info=True)
+        return f"Error getting setup checklist: {str(e)}"
 
 
 # Export tools for agent use
 BRAZE_DOCS_TOOLS = [
     search_braze_docs,
     get_braze_code_examples,
-    list_braze_doc_pages,
+    get_braze_event_schema,
+    get_braze_setup_checklist,
 ]

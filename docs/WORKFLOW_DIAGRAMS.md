@@ -194,8 +194,8 @@ sequenceDiagram
 
         WF->>RA: Process(state)
         activate RA
-        RA->>RA: Query Braze Docs (MCP)
-        RA-->>WF: Returns: Research Results
+        RA->>RA: Query Official Braze MCP (Semantic Search)
+        RA-->>WF: Returns: Research Results & Code Examples
         deactivate RA
         WF->>State: Update State
         WF-->>UI: Yield "✓ Research Complete"
@@ -278,8 +278,8 @@ flowchart TD
 
     subgraph Research["🔍 Research Node"]
         direction TB
-        R1[Read Feature Plan] --> R2[Query Braze Docs MCP]
-        R2 --> R3[Collect Documentation]
+        R1[Read Feature Plan] --> R2["Query Official Braze MCP<br/>(Semantic Search)"]
+        R2 --> R3[Collect Documentation & Examples]
     end
 
     R3 --> C1
@@ -417,7 +417,7 @@ graph TD
     subgraph Infra["☁️ External Infrastructure"]
         direction LR
         OpenAI[OpenAI API<br/>GPT-4o]
-        BrazeMCP[Braze Docs<br/>MCP Server]
+        BrazeMCP[Official Braze<br/>MCP Server]
         Playwright[Playwright<br/>Browser Engine]
     end
 
