@@ -109,3 +109,6 @@ README_BRAZE_GENERATOR.md
 # Cleanup tracking
 CLEANUP_CHECKLIST.md
 README_NEW.md
+
+# Legacy custom MCP server cache (deprecated)
+braze_docs_cache.json
