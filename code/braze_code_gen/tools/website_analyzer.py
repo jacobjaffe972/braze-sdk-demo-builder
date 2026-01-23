@@ -158,7 +158,7 @@ class WebsiteAnalyzer:
 
             except requests.exceptions.SSLError as e:
                 ssl_error_occurred = True
-                logger.warning(f"SSL certificate verification failed for {url}: {str(e)}")
+                logger.debug(f"SSL certificate verification failed for {url}: {str(e)}")
 
             except requests.Timeout:
                 logger.warning(f"Timeout fetching {url} (attempt {attempt + 1}/{self.max_retries})")
@@ -168,7 +168,7 @@ class WebsiteAnalyzer:
 
         # If SSL error occurred, retry once without verification
         if ssl_error_occurred:
-            logger.info(f"Retrying {url} with SSL verification disabled")
+            logger.debug(f"Retrying {url} with SSL verification disabled")
             try:
                 response = requests.get(
                     url,
@@ -178,7 +178,7 @@ class WebsiteAnalyzer:
                     verify=False  # Disable SSL verification as fallback
                 )
                 response.raise_for_status()
-                logger.info(f"Successfully fetched {url} with SSL verification disabled")
+                logger.debug(f"Successfully fetched {url} with SSL verification disabled")
                 return response.text
 
             except requests.RequestException as e:
