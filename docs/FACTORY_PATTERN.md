@@ -429,42 +429,9 @@ def test_all_agent_types_work(agent_type):
 
 ---
 
-## Integration with Gradio UI
+## Integration with UI
 
-From [/code/reference_agents/app.py](../code/reference_agents/app.py):
-
-```python
-def create_demo(agent_name: str = "LLM_Chaining"):
-    """Create Gradio demo for specified agent."""
-    # Factory creates the agent
-    chat_interface = create_agent_by_name(agent_name)
-
-    # Get metadata for UI
-    if agent_name in AGENT_ALIASES:
-        agent_type = AGENT_ALIASES[agent_name]
-    else:
-        agent_type = AgentType(agent_name.lower())
-
-    metadata = AGENT_METADATA.get(agent_type, {
-        "title": f"Deep Research AI - {agent_name}",
-        "description": "Your intelligent AI assistant.",
-        "examples": ["Hello!"]
-    })
-
-    # Create respond function
-    def respond(message: str, history):
-        return chat_interface.process_message(message, history)
-
-    # Create Gradio interface
-    demo = gr.ChatInterface(
-        fn=respond,
-        title=metadata["title"],
-        description=metadata["description"],
-        examples=metadata["examples"]
-    )
-
-    return demo
-```
+The current UI uses Chainlit (`chainlit_app.py`). The factory pattern applies to the backend orchestrator and agent creation — the UI layer calls `Orchestrator.generate_streaming()` and receives framework-agnostic update dicts.
 
 ---
 

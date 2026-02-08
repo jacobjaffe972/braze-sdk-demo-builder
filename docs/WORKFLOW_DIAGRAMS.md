@@ -6,7 +6,7 @@
 graph TB
     subgraph "User Space"
         User[👤 User]
-        UI[🖥️ Gradio UI<br/>Phase 4]
+        UI[🖥️ Chainlit UI<br/>Phase 4]
     end
 
     subgraph "Orchestrator Layer"
@@ -153,7 +153,7 @@ sequenceDiagram
 
     box Frontend Interaction
         participant User
-        participant UI as Gradio UI
+        participant UI as Chainlit UI
     end
 
     box Orchestration Core

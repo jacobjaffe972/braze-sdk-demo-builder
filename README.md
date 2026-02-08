@@ -102,31 +102,15 @@ The Braze SDK Landing Page Generator is a sophisticated **multi-agent system** t
 
 ```bash
 # From repository root
-cd code
-python -m braze_code_gen
+./launch.sh
 
-# Or directly with Streamlit
-cd code
-streamlit run braze_code_gen/ui/streamlit_app.py
+# Or with a custom port
+./launch.sh 8080
 ```
 
-Then open **http://localhost:7860** in your browser.
+Then open **http://localhost:7800** in your browser.
 
-### Command Line Options
-
-```bash
-# Custom port
-python -m braze_code_gen --port 8080
-
-# Enable public sharing
-python -m braze_code_gen --share
-
-# Disable browser testing (faster)
-python -m braze_code_gen --no-browser-testing
-
-# Debug mode with detailed logs
-python -m braze_code_gen --debug
-```
+The Chainlit chat UI will prompt you for Braze API credentials (or auto-load them from `.env`), then you can describe the landing page you want in natural language.
 
 ### Programmatic Usage
 
@@ -202,18 +186,22 @@ The system uses a three-tier architecture for optimal cost/performance:
 ## 📁 Repository Structure
 
 ```
-code-gen-agent/
+sdk-demo-agent/
 ├── .env.example              # Environment template
 ├── .gitignore                # Ignore patterns
 ├── README.md                 # This file
+├── launch.sh                 # Launch script (Chainlit UI)
 │
 ├── braze-docs-mcp/           # Legacy custom MCP server (deprecated)
 │   └── ...                   # Replaced by official Braze MCP server
 │
 ├── code/                     # Main application
+│   ├── .chainlit/            # Chainlit config (theme, settings)
+│   ├── public/               # Static assets (logo, CSS)
+│   ├── chainlit.md           # In-chat welcome content
 │   ├── requirements.txt      # Python dependencies
 │   └── braze_code_gen/       # Braze Code Generator
-│       ├── __main__.py       # Entry point
+│       ├── chainlit_app.py   # Chainlit entry point
 │       ├── README.md         # Detailed documentation
 │       ├── agents/           # 6 specialized agents
 │       ├── core/             # Workflow, models, LLM factory
@@ -221,15 +209,18 @@ code-gen-agent/
 │       ├── prompts/          # System prompts
 │       ├── tests/            # Test suites
 │       ├── tools/            # MCP, browser testing, website analyzer
-│       ├── ui/               # Streamlit interface
+│       ├── ui/               # Callbacks and UI utilities
 │       └── utils/            # Utilities and helpers
 │
 └── docs/                     # Architecture & patterns
     ├── AGENT_PATTERNS.md     # Agent design patterns
+    ├── DEMO_WORKFLOW_DIAGRAM.md # Demo workflow overview
     ├── FACTORY_PATTERN.md    # Factory and interfaces
     ├── IMPLEMENTATION_PLAN.md # Architecture decisions
+    ├── MCP_INTEGRATION.md    # MCP server integration
     ├── TOOL_INTEGRATION.md   # Tool usage patterns
     ├── WORKFLOW_DIAGRAMS.md  # Visual diagrams
+    ├── WORKFLOW_EXPLAINED.md # Detailed workflow walkthrough
     └── WORKFLOW_ORCHESTRATION.md # StateGraph patterns
 ```
 
@@ -287,7 +278,7 @@ User downloads generated landing page
 
 - **Orchestration**: LangGraph (StateGraph pattern)
 - **LLMs**: Multi-provider (OpenAI, Anthropic, Google) via LangChain
-- **UI**: Streamlit with streaming support
+- **UI**: Chainlit (chat-based interface with WebSocket streaming)
 - **Validation**: Playwright (headless browser testing)
 - **Documentation**: Official Braze MCP server (semantic search)
 - **Observability**: Opik tracing
@@ -301,7 +292,7 @@ User downloads generated landing page
 ### Product Documentation
 - **[Main Documentation](code/braze_code_gen/README.md)** - Complete user guide, API reference, troubleshooting
 - **[LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md)** - Provider setup, cost optimization, model mappings
-- **[UI Documentation](code/braze_code_gen/ui/README.md)** - Streamlit interface guide
+- **[UI Documentation](code/braze_code_gen/ui/README.md)** - Chainlit chat interface guide
 
 ### Architecture & Patterns
 - **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Architecture decisions, 5-phase development plan
@@ -340,9 +331,6 @@ pytest tests/test_e2e.py -v
 ### Debugging
 
 ```bash
-# Enable debug mode
-python -m braze_code_gen --debug
-
 # View detailed logs
 tail -f /tmp/braze_exports/*.log
 ```
@@ -355,7 +343,7 @@ tail -f /tmp/braze_exports/*.log
 - [OpenAI](https://openai.com/) - GPT-4 models
 - [Anthropic](https://www.anthropic.com/) - Claude models + Claude Code
 - [Google](https://ai.google.dev/) - Gemini models
-- [Streamlit](https://streamlit.io/) - Web interface
+- [Chainlit](https://chainlit.io/) - Chat-based web interface
 - [Playwright](https://playwright.dev/) - Browser automation
 - [Braze](https://www.braze.com/) - SDK and documentation
 

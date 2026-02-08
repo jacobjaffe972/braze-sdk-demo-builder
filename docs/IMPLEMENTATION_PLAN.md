@@ -9,11 +9,11 @@ Build a multi-agent code generation system that creates fully functional Braze S
 - **Output Format**: Single self-contained HTML file with inline CSS/JS
 - **Validation**: Live testing in headless browser (Playwright)
 - **Agent Structure**: Sequential workflow (Lead → Research → CodeGen → Validation → Refinement → Finalization)
-- **User Interface**: Hybrid chat + feature suggestions (Gradio)
+- **User Interface**: Hybrid chat + feature suggestions (Chainlit)
 - **Target Users**: Internal TAM team for creating SDK demos
 - **Client Branding**: Landing pages must be branded for demo client (color scheme + typography)
 - **Website Analysis**: User provides customer website URL → system extracts branding automatically
-- **API Configuration**: User inputs Braze API key and REST endpoint via Gradio UI initialization form
+- **API Configuration**: User inputs Braze API key and REST endpoint via Chainlit UI initialization form
 - **Export Functionality**: User can download generated HTML file via download button in UI
 
 ## Architecture Overview
@@ -28,11 +28,11 @@ Following the proven delegation pattern from [react_multi_agent.py](code/deep_re
 
 ### Agent Workflow
 ```
-User Opens Gradio UI
+User Opens Chainlit UI
     ↓
 API Configuration Form (validate API key + SDK endpoint)
     ↓
-User Input (Gradio chat: features + customer website URL)
+User Input (Chainlit chat: features + customer website URL)
     ↓
 Planning Agent (extract URL → analyze website → create feature plan with branding)
     ↓
@@ -83,7 +83,7 @@ braze_code_gen/
 │   └── BRAZE_PROMPTS.py             # All system prompts
 ├── ui/
 │   ├── __init__.py
-│   ├── gradio_app.py                # Gradio interface
+│   ├── chainlit_app.py                # Chainlit interface
 │   └── components.py                # UI components
 ├── utils/
 │   ├── __init__.py
@@ -405,7 +405,7 @@ Fonts: 'Helvetica Neue', sans-serif
 
 #### Overview
 
-Add real-time streaming of agent thoughts, intermediate steps, and responses to the Gradio UI. This provides transparency into the multi-agent workflow and keeps users informed during long-running operations (website scraping, code generation, browser validation).
+Add real-time streaming of agent thoughts, intermediate steps, and responses to the Chainlit UI. This provides transparency into the multi-agent workflow and keeps users informed during long-running operations (website scraping, code generation, browser validation).
 
 #### What Users Will See
 
@@ -479,9 +479,9 @@ class Orchestrator:
             yield update
 ```
 
-**File**: [braze_code_gen/ui/gradio_app.py](code/braze_code_gen/ui/gradio_app.py)
+**File**: [braze_code_gen/ui/chainlit_app.py](code/braze_code_gen/ui/chainlit_app.py)
 
-Modify Gradio to support generator functions:
+Modify Chainlit to support generator functions:
 
 ```python
 def respond_streaming(message: str, history: List[Tuple[str, str]]):
@@ -546,7 +546,7 @@ async def astream_with_tokens(self, state: CodeGenerationState):
 ```
 
 **Requirements for Token Streaming**:
-1. Make Gradio `respond` function `async`
+1. Make Chainlit `respond` function `async`
 2. Use `async for` to iterate over tokens
 3. Update UI to handle async generators
 
@@ -577,7 +577,7 @@ async def astream_with_tokens(self, state: CodeGenerationState):
 - **Token Streaming**: **MODERATE** - Additional 150 lines
   - Requires async/await support
   - More complex event filtering
-  - Gradio async handler setup
+  - Chainlit async handler setup
 
 #### Recommendation
 
@@ -590,12 +590,12 @@ async def astream_with_tokens(self, state: CodeGenerationState):
 **New code in Phase 3 & 4**:
 1. Add `stream_workflow()` method to [core/workflow.py](code/braze_code_gen/core/workflow.py)
 2. Add `generate_streaming()` method to [agents/orchestrator.py](code/braze_code_gen/agents/orchestrator.py)
-3. Modify `respond()` to generator function in [ui/gradio_app.py](code/braze_code_gen/ui/gradio_app.py)
+3. Modify `respond()` to generator function in [ui/chainlit_app.py](code/braze_code_gen/ui/chainlit_app.py)
 
 **Total additional code**: ~100 lines
 
-### 8. Gradio UI
-**File**: [braze_code_gen/ui/gradio_app.py](code/braze_code_gen/ui/gradio_app.py)
+### 8. Chainlit UI
+**File**: [braze_code_gen/ui/chainlit_app.py](code/braze_code_gen/ui/chainlit_app.py)
 
 **NEW: Three-Section Accordion Layout with Streaming Support**
 
@@ -767,8 +767,8 @@ playwright>=1.40.0
 
 **Installation**: Run `playwright install chromium` after pip install
 
-### 3. Gradio Integration
-Use existing Gradio pattern from [code/deep_research/app.py](code/deep_research/app.py):
+### 3. Chainlit Integration
+Use existing Chainlit pattern from [code/deep_research/app.py](code/deep_research/app.py):
 - Similar chat interface
 - Add feature suggestion buttons
 - Add iframe preview for generated HTML
@@ -845,7 +845,7 @@ webcolors>=1.13        # Color name to hex conversion
 15. Add Opik tracing
 
 ### Phase 4: UI
-16. Implement Gradio UI in `ui/gradio_app.py` **+ streaming response handler**
+16. Implement Chainlit UI in `ui/chainlit_app.py` **+ streaming response handler**
 17. Add feature suggestions in `utils/sdk_suggestions.py`
 18. Add iframe preview and export functionality
 19. **Add real-time progress indicators** (agent status messages, validation loop visibility)
@@ -868,7 +868,7 @@ webcolors>=1.13        # Color name to hex conversion
   - Event tracking examples
   - All working in browser
 - File passes Playwright validation (no console errors)
-- Preview shows in Gradio iframe
+- Preview shows in Chainlit iframe
 - **Validation loop visible** if refinement needed (up to 3 iterations)
 - Total generation time < 2 minutes
 
@@ -878,7 +878,7 @@ Key files to reference during implementation:
 - [code/deep_research/agents/react_multi_agent.py](code/deep_research/agents/react_multi_agent.py) - Architecture pattern
 - [code/deep_research/core/chat_interface.py](code/deep_research/core/chat_interface.py) - Interface to implement
 - [braze-docs-mcp/server.py](braze-docs-mcp/server.py) - MCP server to integrate
-- [code/deep_research/app.py](code/deep_research/app.py) - Gradio UI pattern
+- [code/deep_research/app.py](code/deep_research/app.py) - Chainlit UI pattern
 - [code/deep_research/prompts/AGENT_PROMPTS.py](code/deep_research/prompts/AGENT_PROMPTS.py) - Prompt structure examples
 
 ## Notes

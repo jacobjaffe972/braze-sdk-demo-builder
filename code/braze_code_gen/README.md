@@ -64,9 +64,9 @@ Router (Tests passed?)
 - **LLMs**: Multi-provider support (OpenAI, Anthropic, Google)
   - Primary tier: GPT-4o / Claude Opus / Gemini 2.0 Flash
   - Research/Validation tier: GPT-4o-mini / Claude Sonnet / Gemini 2.0 Flash
-- **UI**: Streamlit (modern web interface with token streaming)
+- **UI**: Chainlit (chat-based interface with WebSocket token streaming)
 - **Validation**: Playwright (headless browser testing)
-- **Documentation**: Braze Docs MCP server (cached JSON)
+- **Documentation**: Braze Docs MCP server (semantic search)
 - **Observability**: Opik tracing
 
 ### Directory Structure
@@ -88,10 +88,9 @@ braze_code_gen/
 │   ├── mcp_integration.py    # Braze docs access
 │   ├── website_analyzer.py   # Branding extraction
 │   └── browser_testing.py    # Playwright tests
-├── ui/              # Streamlit web interface
-│   ├── streamlit_app.py       # Modern Streamlit UI with token streaming
-│   ├── streamlit_callbacks.py # LangChain callbacks for streaming
-│   └── streamlit_styles.css   # Custom Braze CSS
+├── ui/              # Chainlit chat interface
+│   ├── chainlit_callbacks.py  # LangChain callbacks for token streaming
+│   └── assets/                # Static assets (logo, CSS)
 ├── utils/           # Helper functions
 │   ├── html_template.py
 │   ├── exporter.py
@@ -165,77 +164,28 @@ braze_code_gen/
 
 ### Launch the UI
 
-#### Streamlit UI (New - Recommended)
-
 ```bash
-# Option 1: Using launch script
-./launch_streamlit.sh
+# From repository root
+./launch.sh
 
-# Option 2: Direct streamlit command
-streamlit run code/braze_code_gen/ui/streamlit_app.py
-
-# Option 3: Custom port
-streamlit run code/braze_code_gen/ui/streamlit_app.py --server.port 8080
+# Or with a custom port
+./launch.sh 8080
 ```
 
-Then open http://localhost:7860 in your browser.
+Then open http://localhost:7800 in your browser.
 
-**New Features in Streamlit UI:**
-- ✨ **Token-level streaming**: Watch agents think in real-time
-- ⏹ **Stop button**: Cancel generation mid-stream
-- 🧠 **Agent sidebar**: See which agent is working with Braze branding
-- 🎨 **Enhanced UI**: Modern Streamlit interface with custom theming
-
-```bash
-# Option 1: Using launch script
-./launch_streamlit.sh
-
-# Option 2: Python module
-cd code
-python -m braze_code_gen
-```
-
-Then open http://localhost:8501 in your browser.
-
-### Command Line Options
-
-```bash
-# Custom port
-python -m braze_code_gen --port 8080
-
-# Enable public sharing
-python -m braze_code_gen --share
-
-# Disable browser testing (faster)
-python -m braze_code_gen --no-browser-testing
-
-# Debug mode
-python -m braze_code_gen --debug
-
-# Custom export directory
-python -m braze_code_gen --export-dir /path/to/exports
-```
+The Chainlit chat UI will prompt for Braze API credentials (or auto-load them from `.env`), then accept natural language prompts to generate landing pages.
 
 ---
 
 ## Usage
 
-### Web UI Workflow
+### Chat Workflow
 
-1. **Configure API** (Section 1):
-   - Enter Braze API key
-   - Enter SDK endpoint
-   - Click "Validate & Continue"
-
-2. **Generate Page** (Section 2):
-   - Describe features needed
-   - Optionally include customer website URL for branding
-   - Click "Generate" or use quick suggestions
-
-3. **Preview & Export** (Section 3):
-   - View live preview in iframe
-   - Check extracted branding data
-   - Download HTML file
+1. **Configure API**: On first launch the chat prompts for your Braze API key and SDK endpoint (or reads them from `.env`)
+2. **Send a prompt**: Describe the landing page you want, optionally including a customer website URL for branding
+3. **Watch progress**: Each agent runs as a collapsible Step with real-time token streaming
+4. **Download**: When complete, a download link for the generated HTML file appears in the chat
 
 ---
 
@@ -514,9 +464,9 @@ pip install playwright
 playwright install chromium
 ```
 
-**3. "Port 7860 already in use"**
+**3. "Port 7800 already in use"**
 ```bash
-python -m braze_code_gen --port 8080
+./launch.sh 8080
 ```
 
 **4. "Braze API configuration not set"**

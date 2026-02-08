@@ -1,0 +1,35 @@
+/* Braze SDK Demo — Chainlit CSS overrides */
+
+:root {
+    --braze-teal: #00bfa5;
+    --braze-coral: #f64060;
+    --braze-orange: #ea580c;
+    --braze-dark: #0a0a0f;
+    --braze-dark-card: #121218;
+}
+
+/* Step styling — make completed steps clearly green */
+.step .step-output {
+    border-left: 3px solid var(--braze-teal);
+}
+
+/* Message styling */
+.message-content a {
+    color: var(--braze-teal);
+}
+
+/* Action button (Stop Generation) */
+.action-button {
+    border-color: var(--braze-coral) !important;
+    color: var(--braze-coral) !important;
+}
+
+.action-button:hover {
+    background: rgba(246, 64, 96, 0.1) !important;
+}
+
+/* File download element styling */
+.inline-file {
+    border: 1px solid var(--braze-teal);
+    border-radius: 8px;
+}

@@ -1,0 +1,16 @@
+{
+  "light": {},
+  "dark": {
+    "background": "222 25% 5%",
+    "foreground": "0 0% 95%",
+    "card": "222 25% 10%",
+    "primary": "174 100% 37%",
+    "primary-foreground": "0 0% 100%",
+    "secondary": "24 95% 48%",
+    "accent": "174 100% 37%",
+    "muted": "222 25% 16%",
+    "muted-foreground": "0 0% 60%",
+    "border": "222 25% 18%"
+  },
+  "custom_fonts": []
+}

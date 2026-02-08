@@ -93,7 +93,7 @@ class CodeGenerationAgent:
         try:
             messages = [
                 SystemMessage(content=prompt),
-                HumanMessage(content=f"Generate the complete HTML landing page.\n\nBase template:\n{base_template}")
+                HumanMessage(content=f"Generate the complete landing page code.\n\nBase template:\n{base_template}")
             ]
 
             # Pass config to LLM invoke for token streaming callbacks
