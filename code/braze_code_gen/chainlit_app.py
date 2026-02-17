@@ -77,12 +77,7 @@ async def on_chat_start():
         )
         orchestrator.set_braze_api_config(config)
         cl.user_session.set("api_configured", True)
-        await cl.Message(
-            content=(
-                "API configuration loaded from environment.\n\n"
-                "Describe the landing page you want to build."
-            ),
-        ).send()
+        logger.info("API configuration loaded from environment.")
     else:
         res = await cl.AskUserMessage(
             content=(
@@ -149,12 +144,8 @@ async def on_message(message: cl.Message):
 
     token_callback = ChainlitTokenCallbackHandler(token_queue, stop_event)
 
-    # Stop button
-    stop_action = cl.Action(
-        name="stop_generation", label="Stop Generation", payload={}
-    )
     await cl.Message(
-        content="Starting generation...", actions=[stop_action]
+        content="Starting generation...",
     ).send()
 
     # --- Sync-to-async bridge ---
@@ -257,15 +248,40 @@ async def on_message(message: cl.Message):
 
                 export_path = update.get("export_file_path")
                 if export_path and Path(export_path).exists():
-                    file_element = cl.File(
-                        name="braze_landing_page.html",
-                        path=export_path,
-                        display="inline",
-                    )
-                    await cl.Message(
-                        content="**Generation Complete!** Download your landing page below.",
-                        elements=[file_element],
-                    ).send()
+                    try:
+                        # Ensure .files directory exists for Chainlit
+                        from chainlit.config import FILES_DIRECTORY
+                        FILES_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+                        file_element = cl.File(
+                            name="braze_landing_page.html",
+                            path=export_path,
+                            display="inline",
+                        )
+                        await cl.Message(
+                            content="**Generation Complete!** Download your landing page below.",
+                            elements=[file_element],
+                        ).send()
+                    except Exception as file_err:
+                        logger.error(f"File element error: {file_err}", exc_info=True)
+                        # Fallback: copy to public dir for direct download
+                        try:
+                            pub_dir = Path("public")
+                            pub_dir.mkdir(exist_ok=True)
+                            dest = pub_dir / "braze_landing_page.html"
+                            import shutil
+                            shutil.copy2(export_path, dest)
+                            await cl.Message(
+                                content=(
+                                    "**Generation Complete!**\n\n"
+                                    "Download: [braze_landing_page.html](/public/braze_landing_page.html)"
+                                ),
+                            ).send()
+                        except Exception as copy_err:
+                            logger.error(f"Fallback copy error: {copy_err}")
+                            await cl.Message(
+                                content=f"**Generation Complete!**\n\nFile saved to: `{export_path}`",
+                            ).send()
                 else:
                     await cl.Message(content="Generation complete.").send()
 
@@ -305,10 +321,3 @@ async def on_message(message: cl.Message):
             pass
 
 
-@cl.action_callback("stop_generation")
-async def on_stop(action: cl.Action):
-    """Handle stop button click."""
-    stop_event: Event = cl.user_session.get("stop_event")
-    if stop_event:
-        stop_event.set()
-    await cl.Message(content="Cancellation requested...").send()

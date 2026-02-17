@@ -64,6 +64,10 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Chainlit runtime (root-level auto-generated config)
+/.chainlit/
+code/.files/
+
 # Gradio
 flagged/
 

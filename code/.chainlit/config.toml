@@ -30,7 +30,8 @@ favorites = false
 name = "Braze SDK Demo"
 default_theme = "dark"
 cot = "full"
-custom_css = "/public/stylesheet.css"
+custom_css = "/public/stylesheet.css?v=20260217"
+custom_js = "/public/custom.js"
 confirm_new_chat = true
 alert_style = "classic"
 logo_file_url = "/public/braze-logo.webp"
