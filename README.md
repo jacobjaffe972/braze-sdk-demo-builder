@@ -24,25 +24,18 @@ The Braze SDK Demo Builder is a **multi-agent system** that automatically create
 
 ---
 
-## Quick Links
-
-- **[Detailed Documentation](code/braze_code_gen/README.md)** - Complete guide and API reference
-- **[LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md)** - Multi-provider setup and cost optimization
-- **[Workflow Diagrams](docs/WORKFLOW_DIAGRAMS.md)** - High level architecture and sequence diagrams
-- **[Pattern Documentation](docs/)** - LangChain/LangGraph best practices
-
----
-
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [LLM Provider Configuration](#llm-provider-configuration)
-- [Repository Structure](#repository-structure)
 - [Architecture](#architecture)
-- [Documentation](#documentation)
+- [Agent Details](#agent-details)
+- [API Reference](#api-reference)
+- [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
+- [Further Reading](#further-reading)
 
 ---
 
@@ -135,7 +128,6 @@ To use a custom port:
 from braze_code_gen.agents.orchestrator import Orchestrator
 from braze_code_gen.core.models import BrazeAPIConfig
 
-# Initialize
 orchestrator = Orchestrator(
     braze_api_config=BrazeAPIConfig(
         api_key="your_api_key",
@@ -145,7 +137,6 @@ orchestrator = Orchestrator(
     enable_browser_testing=True
 )
 
-# Generate landing page
 result = orchestrator.generate(
     user_message="Create a landing page with push notifications for https://nike.com",
     website_url="https://nike.com"
@@ -196,47 +187,28 @@ The system uses a three-tier architecture for optimal cost/performance:
 
 *Approximate cost for typical landing page generation
 
+### Advanced: Programmatic Model Override
+
+```python
+from braze_code_gen.core.models import LLMConfig, ModelProvider
+from braze_code_gen.core.llm_factory import LLMFactory
+
+config = LLMConfig(
+    provider=ModelProvider.ANTHROPIC,
+    anthropic_api_key="sk-ant-...",
+    model_mappings={
+        "anthropic": {
+            "primary": "claude-opus-4-5-20251101",
+            "research": "claude-haiku-3-5-20250312",
+            "validation": "claude-sonnet-4-5-20250929"
+        }
+    }
+)
+
+factory = LLMFactory(config)
+```
+
 **For detailed configuration**, see [LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md).
-
----
-
-## Repository Structure
-
-```
-braze-sdk-demo-builder/
-├── .env.example              # Environment template
-├── .gitignore                # Ignore patterns
-├── README.md                 # This file
-├── launch.sh                 # Launch script (Chainlit UI)
-│
-├── code/                     # Main application
-│   ├── .chainlit/            # Chainlit config (theme, settings)
-│   ├── public/               # Static assets (logo, CSS)
-│   ├── chainlit.md           # In-chat welcome content
-│   ├── requirements.txt      # Python dependencies
-│   └── braze_code_gen/       # Core package
-│       ├── chainlit_app.py   # Chainlit entry point
-│       ├── README.md         # Detailed documentation
-│       ├── agents/           # 6 specialized agents
-│       ├── core/             # Workflow, models, LLM factory
-│       ├── docs/             # Product documentation
-│       ├── prompts/          # System prompts
-│       ├── tests/            # Test suites
-│       ├── tools/            # MCP, browser testing, website analyzer
-│       ├── ui/               # Callbacks and UI utilities
-│       └── utils/            # Utilities and helpers
-│
-└── docs/                     # Architecture & patterns
-    ├── AGENT_PATTERNS.md     # Agent design patterns
-    ├── DEMO_WORKFLOW_DIAGRAM.md # Demo workflow overview
-    ├── FACTORY_PATTERN.md    # Factory and interfaces
-    ├── IMPLEMENTATION_PLAN.md # Architecture decisions
-    ├── MCP_INTEGRATION.md    # MCP server integration
-    ├── TOOL_INTEGRATION.md   # Tool usage patterns
-    ├── WORKFLOW_DIAGRAMS.md  # Visual diagrams
-    ├── WORKFLOW_EXPLAINED.md # Detailed workflow walkthrough
-    └── WORKFLOW_ORCHESTRATION.md # StateGraph patterns
-```
 
 ---
 
@@ -299,22 +271,128 @@ User downloads generated landing page
 - **Web Scraping**: BeautifulSoup4, cssutils
 - **Data Validation**: Pydantic 2.x
 
+### Real-time Streaming
+
+LangGraph's `graph.stream()` only yields chunks after each node finishes. To provide real-time token streaming, the UI:
+
+1. Opens a Chainlit Step **proactively** before each node starts
+2. Predicts the next node when the current one completes
+3. Drains a thread-safe `Queue` of tokens into the active Step via `stream_token()`
+
+This gives smooth, live output while preserving the collapsible per-agent Step structure.
+
+### Repository Structure
+
+```
+braze-sdk-demo-builder/
+├── .env.example              # Environment template
+├── README.md                 # This file
+├── launch.sh                 # Launch script (Chainlit UI)
+│
+├── code/                     # Main application
+│   ├── .chainlit/            # Chainlit config (theme, settings)
+│   ├── public/               # Static assets (logo, CSS)
+│   ├── chainlit.md           # In-chat welcome content
+│   ├── requirements.txt      # Python dependencies
+│   └── braze_code_gen/       # Core package
+│       ├── chainlit_app.py   # Chainlit entry point
+│       ├── agents/           # 6 specialized agents + orchestrator
+│       ├── core/             # Workflow, models, LLM factory
+│       ├── docs/             # LLM configuration guide
+│       ├── prompts/          # System prompts
+│       ├── tests/            # Test suites
+│       ├── tools/            # MCP, browser testing, website analyzer
+│       ├── ui/               # Chainlit callbacks
+│       └── utils/            # Exporter, debug, HTML helpers
+│
+└── docs/                     # Architecture & patterns
+    ├── AGENT_PATTERNS.md
+    ├── DEMO_WORKFLOW_DIAGRAM.md
+    ├── FACTORY_PATTERN.md
+    ├── IMPLEMENTATION_PLAN.md
+    ├── MCP_INTEGRATION.md
+    ├── TOOL_INTEGRATION.md
+    ├── WORKFLOW_DIAGRAMS.md
+    ├── WORKFLOW_EXPLAINED.md
+    └── WORKFLOW_ORCHESTRATION.md
+```
+
 ---
 
-## Documentation
+## Agent Details
 
-### Product Documentation
-- **[Main Documentation](code/braze_code_gen/README.md)** - Complete user guide, API reference, troubleshooting
-- **[LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md)** - Provider setup, cost optimization, model mappings
-- **[UI Documentation](code/braze_code_gen/ui/README.md)** - Chainlit chat interface guide
+| Agent | Purpose | Tier | Temp | Tools |
+|-------|---------|------|------|-------|
+| **Planning** | Analyze request, extract URL, scrape branding, create feature plan | Primary | 0.3 | Website analyzer |
+| **Research** | Search Braze docs for SDK methods, code examples, best practices | Research | 0.3 | `search_braze_docs`, `get_braze_code_examples` |
+| **Code Generation** | Generate self-contained HTML/CSS/JS with customer branding and SDK integration | Primary | 0.7 | -- |
+| **Validation** | Run Playwright browser tests, verify SDK loading, check JS console | Validation | 0.3 | Browser tester |
+| **Refinement** | Fix validation issues with minimal targeted changes (max 3 iterations) | Primary | 0.5 | -- |
+| **Finalization** | Polish code, inject metadata, export HTML file with JSON sidecar | Primary | 0.3 | Exporter |
 
-### Architecture & Patterns
-- **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Architecture decisions, 5-phase development plan
-- **[Agent Patterns](docs/AGENT_PATTERNS.md)** - ReAct delegation, StateGraph workflows, tool integration
-- **[Factory Pattern](docs/FACTORY_PATTERN.md)** - LLM factory, provider abstraction
-- **[Tool Integration](docs/TOOL_INTEGRATION.md)** - MCP integration, browser testing, web scraping
-- **[Workflow Orchestration](docs/WORKFLOW_ORCHESTRATION.md)** - LangGraph StateGraph, routing, error handling
-- **[Workflow Diagrams](docs/WORKFLOW_DIAGRAMS.md)** - Visual Mermaid diagrams of system architecture
+Tier assignments map to the provider-specific models in the [Model Tiers](#model-tiers) table above.
+
+---
+
+## API Reference
+
+### `Orchestrator`
+
+```python
+class Orchestrator:
+    def __init__(
+        self,
+        braze_api_config: Optional[BrazeAPIConfig] = None,
+        enable_browser_testing: bool = True,
+        export_dir: str = "/tmp/braze_exports",
+        opik_project_name: str = "braze-code-generator"
+    )
+
+    def generate(
+        self,
+        user_message: str,
+        website_url: Optional[str] = None,
+        max_refinement_iterations: int = 3
+    ) -> Dict[str, Any]
+
+    def generate_streaming(
+        self,
+        user_message: str,
+        website_url: Optional[str] = None,
+        max_refinement_iterations: int = 3
+    ) -> Generator[Dict[str, Any], None, None]
+```
+
+### `BrazeAPIConfig`
+
+```python
+class BrazeAPIConfig(BaseModel):
+    api_key: str          # Min 32 characters
+    rest_endpoint: str    # Must start with https://
+    validated: bool = False
+```
+
+### `CodeGenerationState`
+
+TypedDict defining the workflow state passed between agents:
+
+```python
+class CodeGenerationState(TypedDict):
+    messages: Annotated[Sequence[AnyMessage], add_messages]
+    user_request: str
+    feature_plan: Optional[SDKFeaturePlan]
+    research_results: Optional[ResearchResult]
+    generated_code: Optional[GeneratedCode]
+    validation_passed: bool
+    validation_errors: List[str]
+    refinement_iteration: int
+    max_refinement_iterations: int
+    customer_website_url: Optional[str]
+    branding_data: Optional[BrandingData]
+    braze_api_config: Optional[BrazeAPIConfig]
+    export_file_path: Optional[str]
+    error: Optional[str]
+```
 
 ---
 
@@ -364,12 +442,35 @@ If Playwright browser validation fails with SSL certificate errors, this is typi
 
 > The website analyzer already handles SSL fallback automatically when scraping customer sites, but Playwright uses its own bundled browser which doesn't inherit system certificate settings by default.
 
+### Common Issues
+
+**"LLM API key not found"** - Set the key for your chosen provider in `.env`
+
+**"Playwright not installed"** - Run `pip install playwright && playwright install chromium`
+
+**"Port 7800 already in use"** - Use a custom port: `./launch.sh 8080`
+
+**"Braze API configuration not set"** - Complete the API config step in the UI, or set credentials in `.env`
+
+**Website branding extraction fails** - Some sites block scraping; the system falls back to Braze default branding. You can provide colors manually: "Use #000 as primary color"
+
 ### Debugging
 
 ```bash
 # View detailed logs
 tail -f /tmp/braze_exports/*.log
 ```
+
+---
+
+## Further Reading
+
+- **[LLM Configuration Guide](code/braze_code_gen/docs/LLM_CONFIGURATION.md)** - Provider setup, cost optimization, model mappings
+- **[Workflow Diagrams](docs/WORKFLOW_DIAGRAMS.md)** - Visual Mermaid diagrams of system architecture
+- **[Agent Patterns](docs/AGENT_PATTERNS.md)** - ReAct delegation, StateGraph workflows, tool integration
+- **[Factory Pattern](docs/FACTORY_PATTERN.md)** - LLM factory, provider abstraction
+- **[Tool Integration](docs/TOOL_INTEGRATION.md)** - MCP integration, browser testing, web scraping
+- **[Workflow Orchestration](docs/WORKFLOW_ORCHESTRATION.md)** - LangGraph StateGraph, routing, error handling
 
 ---
 
@@ -382,6 +483,14 @@ tail -f /tmp/braze_exports/*.log
 - [Chainlit](https://chainlit.io/) - Chat-based web interface
 - [Playwright](https://playwright.dev/) - Browser automation
 - [Braze](https://www.braze.com/) - SDK and documentation
+
+---
+
+## Security
+
+- **API Keys**: Stored in Chainlit session memory only, not persisted to disk
+- **Generated HTML**: Saved locally to the export directory, not uploaded anywhere
+- **No External Services**: All processing is local (except LLM API calls and Braze MCP docs)
 
 ---
 
