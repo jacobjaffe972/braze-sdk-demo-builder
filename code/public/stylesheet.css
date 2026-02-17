@@ -22,22 +22,10 @@
     display: none !important;
 }
 
-/* Title line with small inline Braze logo */
+/* Title line — hidden when JS injects the header row */
 #welcome-screen::before {
     content: "Braze SDK Landing Page Generator";
-    display: block !important;
-    width: 100%;
-    max-width: 48rem;
-    text-align: left;
-    background: url('/public/braze-logo.webp') no-repeat left center;
-    background-size: 36px 36px;
-    padding-left: 48px;
-    font-size: 16px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.55);
-    line-height: 36px;
-    margin-bottom: 6px;
-    box-sizing: border-box;
+    display: none !important;
 }
 
 /* Subtitle — larger prominent text */
@@ -47,7 +35,7 @@
     width: 100%;
     max-width: 48rem;
     text-align: left;
-    padding-left: 48px;
+    padding-left: 62px;
     font-size: 28px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
