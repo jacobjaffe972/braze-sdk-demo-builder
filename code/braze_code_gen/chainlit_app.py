@@ -23,12 +23,12 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 NODE_LABELS = {
-    "planning": "Planning",
-    "research": "Research",
-    "code_generation": "Code Generation",
-    "validation": "Validation",
-    "refinement": "Refinement",
-    "finalization": "Finalization",
+    "planning": "Planning Agent",
+    "research": "Research Agent",
+    "code_generation": "Code Generation Agent",
+    "validation": "Validation Agent",
+    "refinement": "Refinement Agent",
+    "finalization": "Finalization Agent",
 }
 
 # Known workflow edges (static). Validation routing is dynamic — see _predict_next_node.

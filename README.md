@@ -1,4 +1,4 @@
-# Braze SDK Landing Page Generator
+# Braze SDK Demo Builder
 
 **Multi-agent code generation system for creating branded Braze SDK demo landing pages**
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-The Braze SDK Landing Page Generator is a sophisticated **multi-agent system** that automatically creates fully functional, branded HTML landing pages featuring Braze SDK integrations. Built with LangGraph and supporting **multiple LLM providers** (OpenAI, Anthropic, Google), it streamlines the process of creating SDK demos for customers.
+The Braze SDK Demo Builder is a **multi-agent system** that automatically creates fully functional, branded HTML landing pages featuring Braze SDK integrations. Built with LangGraph and supporting **multiple LLM providers** (OpenAI, Anthropic, Google), it streamlines the process of creating SDK demos for customers.
 
 ### Key Features
 
@@ -35,82 +35,99 @@ The Braze SDK Landing Page Generator is a sophisticated **multi-agent system** t
 
 ## Table of Contents
 
+- [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [LLM Provider Configuration](#llm-provider-configuration)
 - [Repository Structure](#repository-structure)
 - [Architecture](#architecture)
 - [Documentation](#documentation)
-- [Development Status](#development-status)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Prerequisites
+
+### Required
+
+- **Python 3.10+** - [Download here](https://www.python.org/downloads/)
+- **LLM API key** (at least one):
+  - OpenAI API key (default provider)
+  - Anthropic API key
+  - Google API key
+- **Braze API credentials** - API key and SDK endpoint for the generated landing pages
+
+### Optional
+
+- **Playwright** - Enables automated browser validation of generated pages. The app works without it but skips the validation step.
+- **Tavily API key** - For web search functionality
+- **Opik API key** - For LLM observability/tracing
 
 ---
 
 ## Installation
 
-### Prerequisites
-
-- Python 3.10+
-- **LLM API key** (choose one):
-  - OpenAI API key (default)
-  - Anthropic API key
-  - Google API key
-- Braze API credentials
-- (Optional) Playwright for browser testing
-
-### Setup
-
-1. **Clone and navigate**:
+1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
-   cd code-gen-agent
+   git clone https://github.com/jacobjaffe972/braze-sdk-demo-builder.git
+   cd braze-sdk-demo-builder
    ```
 
-2. **Create virtual environment**:
+2. **Install dependencies**:
    ```bash
-   cd code
-   python3 -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   python3 -m pip install -r code/requirements.txt
    ```
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+   > **Multiple Python versions?** Make sure `pip` matches the `python3` you intend to use. If you have several versions installed, be explicit: `python3.13 -m pip install -r code/requirements.txt`.
 
-4. **Install Playwright** (optional, for validation):
+3. **Install Playwright** (optional - for browser validation):
    ```bash
    playwright install chromium
    ```
 
-5. **Configure environment**:
-   ```bash
-   # Copy template
-   cp ../.env.example ../.env
+   > If you encounter SSL certificate errors during Playwright tests, see [Troubleshooting](#playwright-ssl-certificate-errors) below.
 
-   # Edit .env with your credentials
-   # MODEL_PROVIDER=openai  # or anthropic, google
-   # OPENAI_API_KEY=sk-...
-   # BRAZE_API_KEY=edc26b45-1538-4a6c-bd3f-3b95ee52d784
-   # BRAZE_SDK_ENDPOINT=sondheim.braze.com
+4. **Configure environment**:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Then edit `.env` with your credentials:
+   ```bash
+   # Choose your LLM provider: openai (default), anthropic, or google
+   MODEL_PROVIDER=openai
+
+   # Set the API key for your chosen provider
+   OPENAI_API_KEY=sk-proj-...
+
+   # Braze credentials (for the generated landing pages)
+   BRAZE_API_KEY=your-braze-api-key
+   BRAZE_SDK_ENDPOINT=your-sdk-endpoint.braze.com
    ```
 
 ---
 
 ## Quick Start
 
-### Launch Web UI
+### Launch the Web UI
 
 ```bash
-# From repository root
 ./launch.sh
-
-# Or with a custom port
-./launch.sh 8080
 ```
 
 Then open **http://localhost:7800** in your browser.
 
+The launch script auto-detects which Python has the required packages. To override, set `PYTHON`:
+```bash
+PYTHON=python3.13 ./launch.sh
+```
+
 The Chainlit chat UI will prompt you for Braze API credentials (or auto-load them from `.env`), then you can describe the landing page you want in natural language.
+
+To use a custom port:
+```bash
+./launch.sh 8080
+```
 
 ### Programmatic Usage
 
@@ -183,24 +200,21 @@ The system uses a three-tier architecture for optimal cost/performance:
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
-sdk-demo-agent/
+braze-sdk-demo-builder/
 ├── .env.example              # Environment template
 ├── .gitignore                # Ignore patterns
 ├── README.md                 # This file
 ├── launch.sh                 # Launch script (Chainlit UI)
-│
-├── braze-docs-mcp/           # Legacy custom MCP server (deprecated)
-│   └── ...                   # Replaced by official Braze MCP server
 │
 ├── code/                     # Main application
 │   ├── .chainlit/            # Chainlit config (theme, settings)
 │   ├── public/               # Static assets (logo, CSS)
 │   ├── chainlit.md           # In-chat welcome content
 │   ├── requirements.txt      # Python dependencies
-│   └── braze_code_gen/       # Braze Code Generator
+│   └── braze_code_gen/       # Core package
 │       ├── chainlit_app.py   # Chainlit entry point
 │       ├── README.md         # Detailed documentation
 │       ├── agents/           # 6 specialized agents
@@ -328,6 +342,28 @@ pytest tests/test_e2e.py -v
 
 ---
 
+## Troubleshooting
+
+### Playwright SSL Certificate Errors
+
+If Playwright browser validation fails with SSL certificate errors, this is typically caused by corporate proxies or self-signed certificates on the machine. To fix:
+
+1. **Set the environment variable** before running:
+   ```bash
+   export NODE_TLS_REJECT_UNAUTHORIZED=0
+   ```
+
+2. **Or install your system certificates** for Playwright's bundled Chromium:
+   ```bash
+   # macOS - export system certs and point Playwright to them
+   security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain > /tmp/certs.pem
+   security find-certificate -a -p /Library/Keychains/System.keychain >> /tmp/certs.pem
+   export SSL_CERT_FILE=/tmp/certs.pem
+   export REQUESTS_CA_BUNDLE=/tmp/certs.pem
+   ```
+
+> The website analyzer already handles SSL fallback automatically when scraping customer sites, but Playwright uses its own bundled browser which doesn't inherit system certificate settings by default.
+
 ### Debugging
 
 ```bash
@@ -337,7 +373,7 @@ tail -f /tmp/braze_exports/*.log
 
 ---
 
-# Built with:
+## Built With
 
 - [LangChain](https://python.langchain.com/) / [LangGraph](https://langchain-ai.github.io/langgraph/) - Workflow orchestration
 - [OpenAI](https://openai.com/) - GPT-4 models
@@ -349,8 +385,6 @@ tail -f /tmp/braze_exports/*.log
 
 ---
 
-## 📄 License
+## License
 
 Private repository. Not licensed for distribution.
-
----

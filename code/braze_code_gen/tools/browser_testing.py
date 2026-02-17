@@ -71,7 +71,7 @@ class BrowserTester:
         with sync_playwright() as p:
             # Launch browser
             browser = p.chromium.launch(headless=self.headless)
-            page = browser.new_page()
+            page = browser.new_page(ignore_https_errors=True)
 
             # Set up console listener
             def handle_console(msg):
@@ -312,7 +312,7 @@ class BrowserTester:
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=self.headless)
-            page = browser.new_page()
+            page = browser.new_page(ignore_https_errors=True)
 
             try:
                 # Load page

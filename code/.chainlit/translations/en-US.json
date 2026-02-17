@@ -94,8 +94,8 @@
         },
         "messages": {
             "status": {
-                "using": "Using",
-                "used": "Used"
+                "using": "Invoking",
+                "used": "Invoked"
             },
             "actions": {
                 "copy": {

@@ -1,4 +1,4 @@
-# Deep Research Agent - Requirements
+# Braze SDK Demo Builder - Requirements
 # Install with: pip install -r requirements.txt
 
 # Core LangChain
